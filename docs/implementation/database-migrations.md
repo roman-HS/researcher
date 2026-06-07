@@ -50,6 +50,10 @@ CI runs `pnpm db:check-migrations` on every PR. It fails when changed migration 
 - Do not use `drizzle-kit migrate` alongside `supabase db push` — Supabase tracks applied migrations in its own table.
 - Auto-apply on merge is deferred until Supabase branching and separate environments are configured.
 
-## Next steps
+## Auth schema regeneration
 
-The first real migration will be generated in **Story 2.2.1** (Better Auth schema).
+Better Auth tables in `src/db/schema/auth.ts` are CLI-generated. After changing `src/modules/auth/auth.config.ts` or enabling plugins:
+
+1. `pnpm auth:generate`
+2. `pnpm db:generate`
+3. Review and apply with `pnpm db:push`
