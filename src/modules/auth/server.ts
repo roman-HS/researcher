@@ -2,6 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { nextCookies } from "better-auth/next-js";
 
 import { getDb } from "@/db";
 import * as authSchema from "@/db/schema/auth";
@@ -12,16 +13,16 @@ import { betterAuthSharedOptions } from "./options";
 function requireAuthSecret(): string {
   const { BETTER_AUTH_SECRET } = getServerEnv();
 
-  if (BETTER_AUTH_SECRET) {
-    return BETTER_AUTH_SECRET;
+  if (!BETTER_AUTH_SECRET) {
+    throw new Error(
+      "BETTER_AUTH_SECRET is required. Add it to .env.local or set it in your deployment environment.",
+    );
   }
 
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("BETTER_AUTH_SECRET is required in production");
-  }
-
-  return "dev-only-better-auth-secret-min-32-chars!!";
+  return BETTER_AUTH_SECRET;
 }
+
+const env = getServerEnv();
 
 export const auth = betterAuth({
   ...betterAuthSharedOptions,
@@ -30,5 +31,13 @@ export const auth = betterAuth({
     schema: authSchema,
   }),
   secret: requireAuthSecret(),
-  baseURL: getServerEnv().APP_URL,
+  baseURL: env.APP_URL,
+  advanced: {
+    ...betterAuthSharedOptions.advanced,
+    useSecureCookies: env.NODE_ENV === "production",
+    defaultCookieAttributes: {
+      sameSite: "lax",
+    },
+  },
+  plugins: [nextCookies()],
 });
