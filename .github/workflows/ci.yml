@@ -32,5 +32,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check migration safety
+        run: pnpm db:check-migrations
+
       - name: Run quality gate
         run: pnpm check

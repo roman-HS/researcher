@@ -12,7 +12,11 @@
     "format:check": "prettier --check .",
     "check": "pnpm lint && pnpm typecheck && pnpm build",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node scripts/db-push.mjs"
+    "db:push": "node scripts/db-push.mjs",
+    "db:migrate": "pnpm db:push",
+    "db:migrate:prod": "node scripts/db-push-prod.mjs",
+    "db:status": "node scripts/db-status.mjs",
+    "db:check-migrations": "node scripts/check-migration-safety.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
