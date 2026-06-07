@@ -1,3 +1,11 @@
+export { AppError, isAppError, type AppErrorOptions } from "@/lib/api/errors";
+export {
+  createApiRoute,
+  type ApiRouteAuth,
+  type ApiRouteHandlerContext,
+  type CreateApiRouteConfig,
+  type RouteHandlerContext,
+} from "@/lib/api/handler";
 export {
   apiPaginatedSuccessResponse,
   buildPaginationMeta,
