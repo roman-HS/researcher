@@ -6,5 +6,9 @@
  * @see Naming and import rules in `src/contracts/index.ts`
  */
 
-/** Placeholder until Story 3.2.2 defines provider metadata primitives. */
-export type ProviderName = string;
+export {
+  providerNameSchema,
+  providerSourceMetadataSchema,
+  type ProviderName,
+  type ProviderSourceMetadata,
+} from "@/contracts/domain";

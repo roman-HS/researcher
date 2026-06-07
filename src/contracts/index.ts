@@ -55,7 +55,10 @@ export {
   type ApiValidationIssue,
   type PaginationQuery,
 } from "./api";
-export type { DomainEntityId } from "./domain";
+export type {
+  DomainEntityId,
+  WorkflowVersionId,
+} from "./domain";
 export type { ProviderName } from "./providers";
 export type { RunId } from "./runs";
 export type { ToolKey } from "./tools";

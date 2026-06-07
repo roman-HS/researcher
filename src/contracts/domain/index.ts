@@ -7,5 +7,26 @@
  * @see Naming and import rules in `src/contracts/index.ts`
  */
 
-/** Placeholder until Story 3.2.2 defines `domainEntityIdSchema`. */
-export type DomainEntityId = string;
+export {
+  addressSchema,
+  currencyCodeSchema,
+  DEFAULT_CURRENCY,
+  domainEntityIdSchema,
+  geoCoordinateSchema,
+  isoDateTimeSchema,
+  moneyAmountSchema,
+  moneySchema,
+  providerNameSchema,
+  providerSourceMetadataSchema,
+  usStateCodeSchema,
+  type Address,
+  type DomainEntityId,
+  type GeoCoordinate,
+  type IsoDateTime,
+  type Money,
+  type ProviderName,
+  type ProviderSourceMetadata,
+  type RunId,
+  type WorkflowId,
+  type WorkflowVersionId,
+} from "@/contracts/domain/primitives";

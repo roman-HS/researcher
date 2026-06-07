@@ -4,5 +4,4 @@
  * @see Naming and import rules in `src/contracts/index.ts`
  */
 
-/** Placeholder until Story 3.2.2 defines `workflowIdSchema`. */
-export type WorkflowId = string;
+export type { WorkflowId, WorkflowVersionId } from "@/contracts/domain";
