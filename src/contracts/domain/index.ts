@@ -30,3 +30,19 @@ export {
   type WorkflowId,
   type WorkflowVersionId,
 } from "@/contracts/domain/primitives";
+export {
+  comparablePropertySchema,
+  comparableSetSchema,
+  listingStatusSchema,
+  propertyCoreSchema,
+  propertyDetailSchema,
+  propertyListingSchema,
+  rentEstimateSchema,
+  type ComparableProperty,
+  type ComparableSet,
+  type ListingStatus,
+  type PropertyCore,
+  type PropertyDetail,
+  type PropertyListing,
+  type RentEstimate,
+} from "@/contracts/domain/property";

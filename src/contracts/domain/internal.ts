@@ -1,7 +1,7 @@
 /**
- * Provider-agnostic canonical DTOs (property listings, analysis outputs, etc.).
+ * Provider-agnostic analysis DTOs (metrics, scores, area aggregates, summaries).
  *
- * @see Stories 3.2.3, 3.2.4
+ * @see Story 3.2.4 — Define canonical analysis DTOs
  */
 
 export {};
