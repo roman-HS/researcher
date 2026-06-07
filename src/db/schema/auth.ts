@@ -8,6 +8,8 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 
+import { workspaceMembers } from "./workspace";
+
 export const user = pgTable("user", {
   id: uuid("id")
     .default(sql`pg_catalog.gen_random_uuid()`)
@@ -91,6 +93,7 @@ export const verification = pgTable(
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  workspaceMembers: many(workspaceMembers),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
