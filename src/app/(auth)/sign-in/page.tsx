@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { SignInForm } from "@/components/app/auth/sign-in-form";
 import {
   Card,
   CardContent,
@@ -16,11 +16,11 @@ export default function SignInPage() {
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
           <CardDescription>
-            Authentication will be wired in a later story.
+            Sign in with your email and password to access the product.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Button disabled>Sign in</Button>
+          <SignInForm />
           <p className="text-center text-sm text-muted-foreground">
             Need an account?{" "}
             <Link href="/sign-up" className="font-medium text-foreground">

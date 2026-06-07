@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { SignUpForm } from "@/components/app/auth/sign-up-form";
 import {
   Card,
   CardContent,
@@ -16,11 +16,11 @@ export default function SignUpPage() {
         <CardHeader>
           <CardTitle>Sign up</CardTitle>
           <CardDescription>
-            Account creation will be wired in a later story.
+            Create an account with your email and password.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Button disabled>Create account</Button>
+          <SignUpForm />
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link href="/sign-in" className="font-medium text-foreground">
