@@ -4,11 +4,13 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/modules/auth/server";
+import { getCurrentSession } from "@/modules/auth/session";
 import {
   formatAuthFieldErrors,
   signInSchema,
   signUpSchema,
 } from "@/modules/auth/schemas";
+import { ensurePersonalWorkspace } from "@/modules/workspace/provision";
 
 export type AuthActionState = {
   error?: string;
@@ -64,6 +66,12 @@ export async function signUpAction(
     });
   } catch {
     return { error: SIGN_UP_FAILURE_MESSAGE };
+  }
+
+  const session = await getCurrentSession();
+
+  if (session?.user) {
+    await ensurePersonalWorkspace(session.user.id);
   }
 
   redirect("/workflows");
