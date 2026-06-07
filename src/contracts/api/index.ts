@@ -1,3 +1,10 @@
+/**
+ * Cross-cutting HTTP contracts (envelopes, error codes, pagination).
+ * Resource-specific route bodies live under `@/contracts/<resource>`.
+ *
+ * @see Naming and import rules in `src/contracts/index.ts`
+ */
+
 export {
   apiErrorCodes,
   apiErrorStatusByCode,
