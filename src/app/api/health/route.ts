@@ -6,7 +6,7 @@ export async function GET() {
 
   let database: "ok" | "skipped" | "error" = "skipped";
   if (env.DATABASE_URL) {
-    database = await pingDatabase(env.DATABASE_URL);
+    database = await pingDatabase();
   }
 
   return Response.json({
