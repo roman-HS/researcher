@@ -1,3 +1,2 @@
-// Schema entry point — domain tables are added in Stories 2.1.3+.
-
-export {};
+// Domain tables are added in later stories (2.2.1 auth, 4.1.x workflows, 7.x runs).
+export * from "./helpers";
