@@ -1,3 +1,5 @@
+import { apiErrorResponse } from "@/lib/api/responses";
+
 export class ForbiddenError extends Error {
   override readonly name = "ForbiddenError";
 
@@ -11,5 +13,5 @@ export function isForbiddenError(error: unknown): error is ForbiddenError {
 }
 
 export function forbiddenResponse(): Response {
-  return Response.json({ error: "Forbidden" }, { status: 403 });
+  return apiErrorResponse("forbidden", "Forbidden");
 }

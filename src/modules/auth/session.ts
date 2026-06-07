@@ -3,6 +3,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { cache } from "react";
 
+import { apiErrorResponse } from "@/lib/api/responses";
 import { UnauthorizedError } from "@/modules/auth/errors";
 import { auth } from "@/modules/auth/server";
 
@@ -31,7 +32,7 @@ export async function requireUser(): Promise<CurrentUser> {
 }
 
 export function unauthorizedResponse(): Response {
-  return Response.json({ error: "Unauthorized" }, { status: 401 });
+  return apiErrorResponse("unauthorised", "Unauthorised");
 }
 
 export function formatUserLabel(user: CurrentUser): string {
