@@ -83,3 +83,7 @@ export function apiSuccessResponse<T>(
 
   return Response.json(body, { status: options.status ?? 200 });
 }
+
+export function apiNotImplementedResponse(): Response {
+  return apiErrorResponse("internal_error", "Not implemented", { status: 501 });
+}

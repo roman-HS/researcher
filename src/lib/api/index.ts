@@ -16,6 +16,7 @@ export {
 } from "@/lib/api/pagination";
 export {
   apiErrorResponse,
+  apiNotImplementedResponse,
   apiSuccessResponse,
   apiValidationErrorResponse,
   formatZodValidationIssues,
