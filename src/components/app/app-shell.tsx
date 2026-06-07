@@ -4,10 +4,12 @@ import { LayoutList, Play, Settings, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { SignOutButton } from "@/components/app/auth/sign-out-button";
 import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -64,6 +66,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
+        <SidebarFooter>
+          <SignOutButton />
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">

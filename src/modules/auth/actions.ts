@@ -68,3 +68,11 @@ export async function signUpAction(
 
   redirect("/workflows");
 }
+
+export async function signOutAction(): Promise<void> {
+  await auth.api.signOut({
+    headers: await headers(),
+  });
+
+  redirect("/sign-in");
+}
