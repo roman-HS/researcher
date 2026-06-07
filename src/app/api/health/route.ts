@@ -1,11 +1,18 @@
+import { pingDatabase } from "@/db/ping";
 import { getServerEnv } from "@/lib/env/server";
 
 export async function GET() {
   const env = getServerEnv();
 
+  let database: "ok" | "skipped" | "error" = "skipped";
+  if (env.DATABASE_URL) {
+    database = await pingDatabase(env.DATABASE_URL);
+  }
+
   return Response.json({
-    ok: true,
+    ok: database !== "error",
     nodeEnv: env.NODE_ENV,
     executionTransport: env.EXECUTION_TRANSPORT,
+    database,
   });
 }
