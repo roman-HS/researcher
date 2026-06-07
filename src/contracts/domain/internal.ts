@@ -1,7 +1,37 @@
 /**
- * Provider-agnostic analysis DTOs (metrics, scores, area aggregates, summaries).
- *
- * @see Story 3.2.4 — Define canonical analysis DTOs
+ * @deprecated Import from `@/contracts/domain/analysis` instead.
  */
 
-export {};
+export {
+  areaAggregateSchema,
+  areaGroupingLevelSchema,
+  metricBundleSchema,
+  metricReasonCodeSchema,
+  metricValueAvailableSchema,
+  metricValueMissingSchema,
+  metricValueNotApplicableSchema,
+  metricValueSchema,
+  propertyScoreAvailableSchema,
+  propertyScoreSchema,
+  propertyScoreUnavailableSchema,
+  scoreComponentSchema,
+  scoreReasonCodeSchema,
+  scoreReasonSchema,
+  scoreReasonSeveritySchema,
+  summarySectionSchema,
+  topPropertySummarySchema,
+  workflowSummarySchema,
+  type AreaAggregate,
+  type AreaGroupingLevel,
+  type MetricBundle,
+  type MetricReasonCode,
+  type MetricValue,
+  type PropertyScore,
+  type ScoreComponent,
+  type ScoreReason,
+  type ScoreReasonCode,
+  type ScoreReasonSeverity,
+  type SummarySection,
+  type TopPropertySummary,
+  type WorkflowSummary,
+} from "@/contracts/domain/analysis";
