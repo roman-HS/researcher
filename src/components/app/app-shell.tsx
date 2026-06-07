@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  LayoutList,
-  Play,
-  Settings,
-  type LucideIcon,
-} from "lucide-react";
+import { LayoutList, Play, Settings, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -42,7 +37,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar collapsible="offcanvas">
         <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
-          <span className="text-sm font-semibold tracking-tight">Researcher</span>
+          <span className="text-sm font-semibold tracking-tight">
+            Researcher
+          </span>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>

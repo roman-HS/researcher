@@ -28,8 +28,7 @@ function parseServerEnv(): ServerEnv {
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     RAPIDAPI_HOST: process.env.RAPIDAPI_HOST,
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
-    EXECUTION_TRANSPORT:
-      process.env.EXECUTION_TRANSPORT ?? "direct",
+    EXECUTION_TRANSPORT: process.env.EXECUTION_TRANSPORT ?? "direct",
   });
 
   if (!result.success) {
