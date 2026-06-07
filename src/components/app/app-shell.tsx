@@ -32,7 +32,17 @@ const navItems: {
   { title: "Settings", href: "/settings", icon: Settings },
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+type AppShellProps = {
+  children: React.ReactNode;
+  userLabel: string;
+  workspaceName: string;
+};
+
+export function AppShell({
+  children,
+  userLabel,
+  workspaceName,
+}: AppShellProps) {
   const pathname = usePathname();
 
   return (
@@ -74,9 +84,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
           <SidebarTrigger />
           <div className="flex flex-1 items-center justify-end gap-4 text-sm text-muted-foreground">
-            <span>Personal workspace</span>
+            <span>{workspaceName}</span>
             <Separator orientation="vertical" className="h-4" />
-            <span>Account</span>
+            <span>{userLabel}</span>
           </div>
         </header>
         <div className="flex flex-1 flex-col">{children}</div>

@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/components/app";
+import { AppShell, WorkspaceProvisioningError } from "@/components/app";
 import { appContextPlaceholder } from "@/modules/app-context";
-import { getCurrentSession } from "@/modules/auth/session";
+import { formatUserLabel, getCurrentSession } from "@/modules/auth/session";
+import { requireCurrentWorkspace } from "@/modules/workspace";
 
 export default async function AppLayout({
   children,
@@ -17,5 +18,20 @@ export default async function AppLayout({
     redirect("/sign-in");
   }
 
-  return <AppShell>{children}</AppShell>;
+  let workspace;
+
+  try {
+    workspace = await requireCurrentWorkspace();
+  } catch {
+    return <WorkspaceProvisioningError />;
+  }
+
+  return (
+    <AppShell
+      userLabel={formatUserLabel(session.user)}
+      workspaceName={workspace.name}
+    >
+      {children}
+    </AppShell>
+  );
 }

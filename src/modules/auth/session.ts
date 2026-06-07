@@ -33,3 +33,9 @@ export async function requireUser(): Promise<CurrentUser> {
 export function unauthorizedResponse(): Response {
   return Response.json({ error: "Unauthorized" }, { status: 401 });
 }
+
+export function formatUserLabel(user: CurrentUser): string {
+  const name = user.name?.trim();
+
+  return name || user.email;
+}
