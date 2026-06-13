@@ -1181,7 +1181,7 @@ Implement the persisted workflow model, immutable workflow versions, workflow de
 
 1. Should workflow names be unique within a workspace in V1?
 
-### HERE ------ Story 4.1.2 — Create workflow_versions table
+### Story 4.1.2 — Create workflow_versions table
 
 **Objective:** Persist immutable workflow definition snapshots.
 
@@ -1209,7 +1209,7 @@ Implement the persisted workflow model, immutable workflow versions, workflow de
 
 1. Should each workflow allow only one active draft at a time?
 
-### Story 4.1.3 — Define workflow status and version state rules
+### HERE ------ Story 4.1.3 — Define workflow status and version state rules
 
 **Objective:** Establish the lifecycle for workflows and workflow versions.
 

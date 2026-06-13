@@ -22,6 +22,13 @@
       "when": 1781374392372,
       "tag": "20260613181312_neat_may_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781374957576,
+      "tag": "20260613182237_parallel_invaders",
+      "breakpoints": true
     }
   ]
 }
