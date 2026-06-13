@@ -1,0 +1,2 @@
+- V1 Single Workflow/Pipeline: Search [] → listings; Property Detail listings → propertyDetails; Comparables propertyDetails → comparables; Rent propertyDetails → rentEstimates; Metrics propertyDetails + rentEstimates → metrics; Scoring metrics → scores; Area metrics + scores → areaAggregates; Summary scores + areaAggregates → summary (empty accepts only for the root search tool)
+-

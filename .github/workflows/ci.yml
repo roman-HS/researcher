@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_URL: http://localhost:3000
+      # Auth and DB modules initialize at import time during `next build`.
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+      BETTER_AUTH_SECRET: ci-build-placeholder-do-not-use-in-production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
