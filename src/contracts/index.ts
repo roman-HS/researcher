@@ -61,5 +61,12 @@ export type {
 } from "./domain";
 export type { ProviderName } from "./providers";
 export type { RunId } from "./runs";
-export type { ToolKey } from "./tools";
+export type {
+  ToolArtefactType,
+  ToolCategory,
+  ToolDefinition,
+  ToolDefinitionMetadata,
+  ToolKey,
+  ToolManifest,
+} from "./tools";
 export type { WorkflowId } from "./workflows";

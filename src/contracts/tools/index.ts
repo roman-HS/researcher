@@ -4,5 +4,28 @@
  * @see Naming and import rules in `src/contracts/index.ts`
  */
 
-/** Placeholder until Story 3.3.1 defines `toolKeySchema`. */
-export type ToolKey = `${string}@${number}`;
+export {
+  createToolManifest,
+  defineToolDefinition,
+  inspectorComponentKeySchema,
+  jsonSchemaDocumentSchema,
+  resolveExecutorKey,
+  toolArtefactTypeSchema,
+  toolCategorySchema,
+  toolDefinitionMetadataSchema,
+  toolIconKeySchema,
+  toolKeySchema,
+  toolManifestSchema,
+  toolTagSchema,
+  toolTagsSchema,
+  type InspectorComponentKey,
+  type JsonSchemaDocument,
+  type ToolArtefactType,
+  type ToolCategory,
+  type ToolDefinition,
+  type ToolDefinitionMetadata,
+  type ToolIconKey,
+  type ToolKey,
+  type ToolManifest,
+  type ToolTags,
+} from "@/contracts/tools/internal";
