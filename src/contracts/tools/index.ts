@@ -29,3 +29,14 @@ export {
   type ToolManifest,
   type ToolTags,
 } from "@/contracts/tools/internal";
+export {
+  TOOL_CATEGORIES,
+  getToolCategoryDefinition,
+  getToolCategorySummary,
+  listToolCategories,
+  listToolCategorySummaries,
+  toolCategoryDefinitionSchema,
+  toolCategorySummarySchema,
+  type ToolCategoryDefinition,
+  type ToolCategorySummary,
+} from "@/contracts/tools/categories";

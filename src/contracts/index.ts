@@ -64,6 +64,8 @@ export type { RunId } from "./runs";
 export type {
   ToolArtefactType,
   ToolCategory,
+  ToolCategoryDefinition,
+  ToolCategorySummary,
   ToolDefinition,
   ToolDefinitionMetadata,
   ToolKey,
