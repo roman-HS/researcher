@@ -40,3 +40,13 @@ export {
   type ToolCategoryDefinition,
   type ToolCategorySummary,
 } from "@/contracts/tools/categories";
+export {
+  listToolsQuerySchema,
+  type ListToolsQuery,
+} from "@/contracts/tools/requests";
+export {
+  listToolsResponseSchema,
+  toolDiscoveryItemSchema,
+  type ListToolsResponse,
+  type ToolDiscoveryItem,
+} from "@/contracts/tools/responses";

@@ -1,7 +1,12 @@
+import { listToolsQuerySchema } from "@/contracts/tools/requests";
 import { createApiRoute } from "@/lib/api/handler";
-import { apiNotImplementedResponse } from "@/lib/api/responses";
+import { listToolsForDiscovery } from "@/modules/tools/discovery";
 
 export const GET = createApiRoute({
   auth: "workspace",
-  handler: async () => apiNotImplementedResponse(),
+  query: listToolsQuerySchema,
+  handler: async ({ query }) =>
+    listToolsForDiscovery({
+      category: query.category,
+    }),
 });

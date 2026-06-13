@@ -1,5 +1,9 @@
-/**
- * `/api/v1/tools` request body and query schemas.
- */
+import { z } from "zod";
 
-export {};
+import { toolCategorySchema } from "@/contracts/tools/internal";
+
+export const listToolsQuerySchema = z.object({
+  category: toolCategorySchema.optional(),
+});
+
+export type ListToolsQuery = z.infer<typeof listToolsQuerySchema>;

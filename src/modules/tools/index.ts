@@ -1,5 +1,9 @@
 export { ToolNotFoundError, isToolNotFoundError } from "@/modules/tools/errors";
 export {
+  listToolsForDiscovery,
+  type ListToolsForDiscoveryOptions,
+} from "@/modules/tools/discovery";
+export {
   V1_TOOL_KEYS,
   V1_TOOLS,
   getDefaultToolConfig,
