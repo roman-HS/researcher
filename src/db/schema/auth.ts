@@ -8,6 +8,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 
+import { workflows } from "./workflow";
 import { workspaceMembers } from "./workspace";
 
 export const user = pgTable("user", {
@@ -94,6 +95,7 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   workspaceMembers: many(workspaceMembers),
+  createdWorkflows: many(workflows),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
