@@ -1,6 +1,10 @@
 export {
   createRapidApiClient,
   getRapidApiClient,
+  mapRapidApiFailureToProviderError,
+  parseRetryAfterSeconds,
+  providerErrorToAppError,
+  providerErrorToStepErrorJson,
   RapidApiConfigurationError,
   isRapidApiConfigurationError,
   DEFAULT_RAPIDAPI_TIMEOUT_MS,
@@ -17,4 +21,9 @@ export type {
   RapidApiSafeHeaders,
   RapidApiSuccessResult,
 } from "./rapidapi";
+export type {
+  ProviderError,
+  ProviderErrorCategory,
+  ProviderStepError,
+} from "@/contracts/providers/errors";
 export type { IntegrationClient } from "./types";

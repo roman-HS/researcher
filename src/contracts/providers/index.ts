@@ -7,6 +7,20 @@
  */
 
 export {
+  providerErrorCategories,
+  providerErrorCategorySchema,
+  providerErrorDebugSchema,
+  providerErrorSchema,
+  providerRateLimitHeadersSchema,
+  providerStepErrorSchema,
+  providerUserMessages,
+  isProviderError,
+  isProviderStepError,
+  type ProviderError,
+  type ProviderErrorCategory,
+  type ProviderStepError,
+} from "@/contracts/providers/errors";
+export {
   providerNameSchema,
   providerSourceMetadataSchema,
   type ProviderName,

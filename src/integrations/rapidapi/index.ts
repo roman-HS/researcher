@@ -7,6 +7,12 @@ export {
   isRapidApiConfigurationError,
 } from "@/integrations/rapidapi/errors";
 export {
+  mapRapidApiFailureToProviderError,
+  parseRetryAfterSeconds,
+  providerErrorToAppError,
+  providerErrorToStepErrorJson,
+} from "@/integrations/rapidapi/map-failure";
+export {
   DEFAULT_RAPIDAPI_TIMEOUT_MS,
   RAPIDAPI_CLIENT_NAME,
   type CreateRapidApiClientOptions,
