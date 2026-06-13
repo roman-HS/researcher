@@ -14,6 +14,7 @@ const serverEnvSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(1).optional(),
   RAPIDAPI_HOST: z.string().min(1).optional(),
   RAPIDAPI_KEY: z.string().min(1).optional(),
+  RAPIDAPI_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
   EXECUTION_TRANSPORT: executionTransportSchema,
 });
 
@@ -30,6 +31,7 @@ function parseServerEnv(): ServerEnv {
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     RAPIDAPI_HOST: process.env.RAPIDAPI_HOST,
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
+    RAPIDAPI_TIMEOUT_MS: process.env.RAPIDAPI_TIMEOUT_MS,
     EXECUTION_TRANSPORT: process.env.EXECUTION_TRANSPORT ?? "direct",
   });
 
