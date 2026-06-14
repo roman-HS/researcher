@@ -3,10 +3,13 @@ export const RUNS_MODULE_ROOT = "runs" as const;
 export {
   RunInputValidationError,
   RunLifecycleError,
+  RunStepConfigResolutionError,
   isRunInputValidationError,
   isRunLifecycleError,
+  isRunStepConfigResolutionError,
   type RunInputValidationIssue,
   type RunLifecycleErrorCode,
+  type RunStepConfigResolutionIssue,
 } from "./errors";
 export {
   assertRunStatusTransition,
@@ -25,3 +28,8 @@ export {
 export {
   parseRuntimeInputValues,
 } from "./validate-runtime-inputs";
+export {
+  parseResolvedStepConfig,
+  type ResolveWorkflowStepConfigOptions,
+  type StepConfigResolutionIssue,
+} from "./resolve-step-config";

@@ -1,8 +1,11 @@
+import type { StepConfigResolutionIssue } from "@/lib/workflows/resolve-step-config";
 import type { RuntimeInputValidationIssue } from "@/lib/workflows/validate-runtime-inputs";
 
 export type RunLifecycleErrorCode = "invalid_transition" | "invalid_status";
 
 export type RunInputValidationIssue = RuntimeInputValidationIssue;
+
+export type RunStepConfigResolutionIssue = StepConfigResolutionIssue;
 
 export class RunLifecycleError extends Error {
   override readonly name = "RunLifecycleError";
@@ -41,4 +44,28 @@ export function isRunInputValidationError(
   error: unknown,
 ): error is RunInputValidationError {
   return error instanceof RunInputValidationError;
+}
+
+export class RunStepConfigResolutionError extends Error {
+  override readonly name = "RunStepConfigResolutionError";
+
+  readonly issues: readonly RunStepConfigResolutionIssue[];
+
+  constructor(issues: readonly RunStepConfigResolutionIssue[]) {
+    const summary = issues.map((entry) => entry.message).join("; ");
+
+    super(
+      issues.length === 1
+        ? `Step config resolution failed: ${summary}`
+        : `Step config resolution failed with ${issues.length} errors: ${summary}`,
+    );
+
+    this.issues = issues;
+  }
+}
+
+export function isRunStepConfigResolutionError(
+  error: unknown,
+): error is RunStepConfigResolutionError {
+  return error instanceof RunStepConfigResolutionError;
 }
