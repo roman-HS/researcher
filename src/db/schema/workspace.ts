@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import { index, pgEnum, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
+import { workflowRuns } from "./run";
 import { workflows } from "./workflow";
 import {
   entityIdColumn,
@@ -64,6 +65,7 @@ export const workspaceMembers = pgTable(
 export const workspacesRelations = relations(workspaces, ({ many, one }) => ({
   members: many(workspaceMembers),
   workflows: many(workflows),
+  runs: many(workflowRuns),
   personalOwner: one(user, {
     fields: [workspaces.personalOwnerUserId],
     references: [user.id],

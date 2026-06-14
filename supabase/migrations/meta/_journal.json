@@ -29,6 +29,13 @@
       "when": 1781374957576,
       "tag": "20260613182237_parallel_invaders",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781462180593,
+      "tag": "20260614183620_sudden_blizzard",
+      "breakpoints": true
     }
   ]
 }

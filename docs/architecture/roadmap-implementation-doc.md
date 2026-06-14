@@ -2858,7 +2858,7 @@ Implement the first real tool executors, map RapidAPI/private-Zillow responses i
 
 Create the run model, execution engine, status lifecycle, idempotent run creation, step execution, partial-result handling, and run APIs.
 
-## HERE ------ Epic 7.1 — Run persistence model
+## Epic 7.1 — Run persistence model
 
 ### Story 7.1.1 — Create workflow_runs table
 
@@ -2971,7 +2971,7 @@ Create the run model, execution engine, status lifecycle, idempotent run creatio
 
 1. How long should idempotency keys be retained?
 
-## Epic 7.2 — Execution planning and lifecycle
+## HERE ------ Epic 7.2 — Execution planning and lifecycle
 
 ### Story 7.2.1 — Implement published workflow compiler
 

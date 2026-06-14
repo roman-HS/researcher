@@ -6,6 +6,16 @@
 
 export type { RunId } from "@/contracts/domain";
 export {
+  workflowRunStatuses,
+  workflowRunStatusLabels,
+  workflowRunStatusSchema,
+  workflowRunStepStatuses,
+  workflowRunStepStatusLabels,
+  workflowRunStepStatusSchema,
+  type WorkflowRunStatus,
+  type WorkflowRunStepStatus,
+} from "@/contracts/runs/lifecycle";
+export {
   buildPropertyKeyFromAddressFallback,
   buildPropertyKeyFromProviderId,
   buildPropertyKeyFromSource,

@@ -17,6 +17,7 @@ import {
   standardTimestampColumns,
 } from "./helpers/columns";
 import { createStatusEnum } from "./helpers/enums";
+import { workflowRuns } from "./run";
 import { workspaces } from "./workspace";
 
 /**
@@ -102,6 +103,7 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
     references: [user.id],
   }),
   versions: many(workflowVersions),
+  runs: many(workflowRuns),
 }));
 
 export const workflowVersionsRelations = relations(
