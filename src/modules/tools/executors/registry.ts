@@ -5,8 +5,10 @@ import { rentEstimateToolKey } from "@/contracts/providers/zillow/rent-estimate"
 import type { ToolExecutor } from "@/contracts/runs";
 import type { ToolKey } from "@/contracts/tools";
 import { calculateMetricsToolKey } from "@/modules/tools/definitions/calculate-metrics";
+import { scorePropertiesToolKey } from "@/modules/tools/definitions/score-properties";
 import { ExecutorNotFoundError } from "@/modules/tools/executors/errors";
 import { executeCalculateMetrics } from "@/modules/tools/executors/calculate-metrics";
+import { executeScoreProperties } from "@/modules/tools/executors/score-properties";
 import { executeEstimateRent } from "@/modules/tools/executors/estimate-rent";
 import { executeFetchComparables } from "@/modules/tools/executors/fetch-comparables";
 import { executeListingSearch } from "@/modules/tools/executors/listing-search";
@@ -33,6 +35,10 @@ function resolveExecutor(toolKey: ToolKey): ToolExecutor {
 
   if (toolKey === calculateMetricsToolKey) {
     return executeCalculateMetrics;
+  }
+
+  if (toolKey === scorePropertiesToolKey) {
+    return executeScoreProperties;
   }
 
   return createNotImplementedToolExecutor(toolKey);

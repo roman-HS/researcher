@@ -30,8 +30,17 @@ export const scorePropertiesConfigSchema = z
 
 export type ScorePropertiesConfig = z.infer<typeof scorePropertiesConfigSchema>;
 
+/** Binding-free config values passed to the executor after Story 7.2.4 resolution. */
+export const scorePropertiesResolvedConfigSchema = scorePropertiesConfigSchema;
+
+export type ScorePropertiesResolvedConfig = z.infer<
+  typeof scorePropertiesResolvedConfigSchema
+>;
+
+export const scorePropertiesToolKey = "analysis.scoreProperties@1" as const;
+
 export const scorePropertiesTool = defineToolDefinition({
-  key: "analysis.scoreProperties@1",
+  key: scorePropertiesToolKey,
   name: "Score Properties",
   description: "Rank properties using transparent scoring weights and thresholds.",
   category: "analyze",
