@@ -1,6 +1,10 @@
 export const WORKFLOWS_MODULE_ROOT = "workflows" as const;
 
 export {
+  createWorkflow,
+  type CreateWorkflowContext,
+} from "./create-workflow";
+export {
   WorkflowDefinitionValidationError,
   WorkflowLifecycleError,
   isWorkflowDefinitionValidationError,

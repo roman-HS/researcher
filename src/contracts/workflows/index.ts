@@ -88,4 +88,14 @@ export {
   type WorkflowDefinitionValidationResult,
   type WorkflowDefinitionValidationSeverity,
 } from "./validation";
+export {
+  createWorkflowRequestSchema,
+  workflowNameSchema,
+  type CreateWorkflowRequest,
+  type WorkflowName,
+} from "./requests";
+export {
+  createWorkflowResponseSchema,
+  type CreateWorkflowResponse,
+} from "./responses";
 export type { WorkflowId, WorkflowVersionId } from "@/contracts/domain";
