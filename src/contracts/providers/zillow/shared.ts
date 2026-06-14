@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 /**
- * Shared constants for private-Zillow placeholder contracts.
+ * Shared constants for private-Zillow provider contracts.
  *
- * UNVERIFIED — all schemas in `zillow/` are planning assumptions only.
- * Confirm against live RapidAPI/private-Zillow docs in Stories 6.1.1–6.1.4.
+ * Listing search confirmed in Story 6.1.1; other schemas remain planning assumptions
+ * until Stories 6.1.2–6.1.4.
  */
 
 export const ZILLOW_PROVIDER_NAME = "rapidapi.zillow" as const;

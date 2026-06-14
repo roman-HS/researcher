@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
+import { InfoIcon } from "lucide-react";
 
 import {
   buildConfigValueFieldError,
   WorkflowConfigValueField,
 } from "@/components/app/workflows/workflow-config-value-field";
 import type { WorkflowToolConfigInspectorProps } from "@/components/app/workflows/workflow-tool-config-inspector-shell";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -169,6 +171,17 @@ export function ListingSearchInspector({ nodeId }: WorkflowToolConfigInspectorPr
 
   return (
     <div className="space-y-4">
+      <Alert className="border-border/60 bg-muted/30">
+        <InfoIcon />
+        <AlertTitle>For-sale listings only</AlertTitle>
+        <AlertDescription>
+          V1 listing search uses the confirmed private-Zillow contract with
+          for-sale status only. Rental, sold, and advanced filters such as
+          beds, home type, and pagination are not configurable in the builder
+          yet.
+        </AlertDescription>
+      </Alert>
+
       <div className="space-y-2">
         <Label
           htmlFor={`${nodeId}-location-source`}

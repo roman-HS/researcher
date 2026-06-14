@@ -1,7 +1,7 @@
 /**
  * Outbound provider API request schemas.
  *
- * UNVERIFIED placeholders — confirm during Stories 6.1.1–6.1.4.
+ * Listing search confirmed in Story 6.1.1; other Zillow tools remain placeholders.
  */
 
 export {

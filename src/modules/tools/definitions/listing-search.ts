@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { listingSearchV1ListingStatus } from "@/contracts/providers/zillow/listing-search";
 import { defineToolDefinition } from "@/contracts/tools";
 import {
   bindableNumberConfigValueSchema,
@@ -70,10 +71,13 @@ export const listingSearchConfigStrictSchema =
 
 export type ListingSearchConfig = z.infer<typeof listingSearchConfigBaseSchema>;
 
+export { listingSearchV1ListingStatus };
+
 export const listingSearchTool = defineToolDefinition({
   key: "rapidapi.zillow.searchListings@1",
   name: "Listing Search",
-  description: "Find property listings by location and optional price filters.",
+  description:
+    "Find for-sale property listings by ZIP or city/state with optional price filters.",
   category: "search",
   iconKey: "search",
   tags: ["listings", "search", "location"],
