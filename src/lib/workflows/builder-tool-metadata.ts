@@ -1,3 +1,4 @@
+import type { ToolCategory } from "@/contracts/tools/internal";
 import type { ListToolsResponse } from "@/contracts/tools/responses";
 
 /**
@@ -8,7 +9,12 @@ import type { ListToolsResponse } from "@/contracts/tools/responses";
 
 export type WorkflowBuilderToolMetadata = {
   name: string;
+  description: string;
   categoryLabel: string;
+  categoryKey: ToolCategory;
+  iconKey: string;
+  accepts: ListToolsResponse["tools"][number]["accepts"];
+  produces: ListToolsResponse["tools"][number]["produces"];
 };
 
 export function buildToolMetadataByKey(
@@ -23,8 +29,13 @@ export function buildToolMetadataByKey(
       tool.key,
       {
         name: tool.name,
+        description: tool.description,
         categoryLabel:
           categoryLabelByKey.get(tool.category) ?? tool.category,
+        categoryKey: tool.category,
+        iconKey: tool.iconKey,
+        accepts: tool.accepts,
+        produces: tool.produces,
       },
     ]),
   );

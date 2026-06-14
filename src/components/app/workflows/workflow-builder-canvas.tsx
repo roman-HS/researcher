@@ -52,6 +52,12 @@ export function WorkflowBuilderCanvas({
 }: WorkflowBuilderCanvasProps) {
   const definition = useWorkflowBuilderStore((state) => state.definition);
   const setDefinition = useWorkflowBuilderStore((state) => state.setDefinition);
+  const pendingSelectNodeId = useWorkflowBuilderStore(
+    (state) => state.pendingSelectNodeId,
+  );
+  const clearPendingSelectNodeId = useWorkflowBuilderStore(
+    (state) => state.clearPendingSelectNodeId,
+  );
 
   const [hasSelectedNode, setHasSelectedNode] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<
@@ -82,9 +88,27 @@ export function WorkflowBuilderCanvas({
   );
 
   useEffect(() => {
-    setNodes(derivedFlow.nodes);
+    if (pendingSelectNodeId) {
+      setNodes(
+        derivedFlow.nodes.map((node) => ({
+          ...node,
+          selected: node.id === pendingSelectNodeId,
+        })),
+      );
+      clearPendingSelectNodeId();
+    } else {
+      setNodes(derivedFlow.nodes);
+    }
+
     setEdges(derivedFlow.edges);
-  }, [derivedFlow.edges, derivedFlow.nodes, setEdges, setNodes]);
+  }, [
+    clearPendingSelectNodeId,
+    derivedFlow.edges,
+    derivedFlow.nodes,
+    pendingSelectNodeId,
+    setEdges,
+    setNodes,
+  ]);
 
   const commitGraph = useCallback(
     (
@@ -240,12 +264,17 @@ export function WorkflowBuilderCanvas({
       workflowNodeHasIncidentEdges(node.id, definition),
     ) ?? false;
 
+const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 0.8 };
+
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full overflow-hidden">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         nodeTypes={workflowToolNodeTypes}
+        defaultViewport={DEFAULT_VIEWPORT}
+        minZoom={0.35}
+        maxZoom={1.5}
         onNodesChange={onNodesChange}
         onNodeDragStop={handleNodeDragStop}
         onEdgesChange={handleEdgesChange}
@@ -262,10 +291,14 @@ export function WorkflowBuilderCanvas({
         selectNodesOnDrag={false}
         multiSelectionKeyCode={null}
         deleteKeyCode={["Backspace", "Delete"]}
-        fitView
         proOptions={{ hideAttribution: true }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={16} />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={20}
+          size={1}
+          color="var(--border)"
+        />
         <WorkflowBuilderCanvasControls
           hasSelectedNode={hasSelectedNode}
           onDeleteSelected={handleDeleteSelected}

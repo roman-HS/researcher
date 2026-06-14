@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
+import { WorkflowToolPalette } from "@/components/app/workflows/workflow-tool-palette";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -15,8 +16,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import type { ListToolsResponse } from "@/contracts/tools/responses";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
-import type { WorkflowBuilderToolMetadata } from "@/lib/workflows/builder-tool-metadata";
+import { buildToolMetadataByKey } from "@/lib/workflows/builder-tool-metadata";
 import type { WorkflowNodeValidationStatus } from "@/lib/workflows/node-validation-status";
 import {
   WorkflowBuilderStoreProvider,
@@ -27,7 +29,7 @@ type WorkflowBuilderProps = {
   workflowName: string;
   workflowDescription: string | null;
   initialDefinition: WorkflowDefinition;
-  toolMetadataByKey: Record<string, WorkflowBuilderToolMetadata>;
+  initialToolCatalog: ListToolsResponse;
   nodeValidationStatusByNodeId: Record<string, WorkflowNodeValidationStatus>;
 };
 
@@ -80,10 +82,14 @@ function WorkflowBuilderBackButton() {
 function WorkflowBuilderShell({
   workflowName,
   workflowDescription,
-  toolMetadataByKey,
+  initialToolCatalog,
   nodeValidationStatusByNodeId,
 }: Omit<WorkflowBuilderProps, "initialDefinition">) {
   const isDirty = useWorkflowBuilderStore((state) => state.isDirty);
+  const toolMetadataByKey = useMemo(
+    () => buildToolMetadataByKey(initialToolCatalog),
+    [initialToolCatalog],
+  );
 
   useEffect(() => {
     function handleBeforeUnload(event: BeforeUnloadEvent) {
@@ -100,7 +106,7 @@ function WorkflowBuilderShell({
   }, [isDirty]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-4 py-3 md:px-6">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -121,11 +127,14 @@ function WorkflowBuilderShell({
         </div>
         <WorkflowBuilderBackButton />
       </div>
-      <div className="relative min-h-0 flex-1">
-        <WorkflowBuilderCanvas
-          toolMetadataByKey={toolMetadataByKey}
-          nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
-        />
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <div className="relative h-full min-h-0 min-w-0 flex-1 overflow-hidden">
+          <WorkflowBuilderCanvas
+            toolMetadataByKey={toolMetadataByKey}
+            nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
+          />
+        </div>
+        <WorkflowToolPalette toolCatalog={initialToolCatalog} />
       </div>
     </div>
   );
@@ -135,7 +144,7 @@ export function WorkflowBuilder({
   workflowName,
   workflowDescription,
   initialDefinition,
-  toolMetadataByKey,
+  initialToolCatalog,
   nodeValidationStatusByNodeId,
 }: WorkflowBuilderProps) {
   return (
@@ -143,7 +152,7 @@ export function WorkflowBuilder({
       <WorkflowBuilderShell
         workflowName={workflowName}
         workflowDescription={workflowDescription}
-        toolMetadataByKey={toolMetadataByKey}
+        initialToolCatalog={initialToolCatalog}
         nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
       />
     </WorkflowBuilderStoreProvider>

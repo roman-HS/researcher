@@ -4,7 +4,6 @@ import { WorkflowBuilder } from "@/components/app/workflows/workflow-builder";
 import NonEditableDraft from "@/components/app/workflows/non-editable-draft";
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
 import { isAppError } from "@/lib/api/errors";
-import { buildToolMetadataByKey } from "@/lib/workflows/builder-tool-metadata";
 import { buildNodeValidationStatusByNodeId } from "@/lib/workflows/node-validation-status";
 import { listToolsForDiscovery } from "@/modules/tools";
 import {
@@ -46,20 +45,22 @@ export default async function WorkflowBuilderPage({
 
   const draftDefinition = workflow.draftVersion.definition;
   const draftValidation = validateWorkflowDefinition(draftDefinition, "draft");
-  const toolMetadataByKey = buildToolMetadataByKey(listToolsForDiscovery());
+  const initialToolCatalog = listToolsForDiscovery();
   const nodeValidationStatusByNodeId = buildNodeValidationStatusByNodeId([
     ...draftValidation.errors,
     ...draftValidation.warnings,
   ]);
 
   return (
-    <WorkflowBuilder
-      key={workflow.workflowId}
-      workflowName={workflow.name}
-      workflowDescription={workflow.description}
-      initialDefinition={draftDefinition}
-      toolMetadataByKey={toolMetadataByKey}
-      nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
-    />
+    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
+      <WorkflowBuilder
+        key={workflow.workflowId}
+        workflowName={workflow.name}
+        workflowDescription={workflow.description}
+        initialDefinition={draftDefinition}
+        initialToolCatalog={initialToolCatalog}
+        nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
+      />
+    </div>
   );
 }

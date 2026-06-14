@@ -24,7 +24,7 @@ export default async function WorkflowsPage() {
     items = await loadWorkflows();
   } catch {
     return (
-      <div className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-6">
+      <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto p-4 md:p-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Workflows</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -37,7 +37,7 @@ export default async function WorkflowsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-6">
+    <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto p-4 md:p-6">
       <WorkflowsList items={items} />
     </div>
   );

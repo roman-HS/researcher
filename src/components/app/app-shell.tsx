@@ -80,7 +80,7 @@ export function AppShell({
           <SignOutButton />
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
+      <SidebarInset className="flex max-h-svh min-h-0 flex-1 flex-col overflow-hidden">
         <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
           <SidebarTrigger />
           <div className="flex flex-1 items-center justify-end gap-4 text-sm text-muted-foreground">
@@ -89,7 +89,9 @@ export function AppShell({
             <span>{userLabel}</span>
           </div>
         </header>
-        <div className="flex flex-1 flex-col">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
