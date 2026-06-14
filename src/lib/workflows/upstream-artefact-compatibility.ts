@@ -84,3 +84,60 @@ export function getMissingUpstreamArtefactMessage(
 
   return `This step requires ${formatArtefactList(tool.accepts).toLowerCase()} from an upstream step, but none were found on this path.`;
 }
+
+export function getMissingRentEstimatesUpstreamMessage(
+  definition: WorkflowDefinition,
+  nodeId: string,
+): string | null {
+  const node = definition.nodes.find((item) => item.id === nodeId);
+
+  if (!node || !hasToolKey(node.toolKey)) {
+    return null;
+  }
+
+  const tool = getToolDefinition(node.toolKey);
+
+  if (!tool.accepts.includes("rentEstimates")) {
+    return null;
+  }
+
+  let executionOrder: string[];
+
+  try {
+    executionOrder = resolveWorkflowExecutionOrder(definition);
+  } catch {
+    return null;
+  }
+
+  const nodesById = new Map(
+    definition.nodes.map((item) => [item.id, item] as const),
+  );
+  const producedArtefacts = new Set<ToolArtefactType>();
+
+  for (const currentNodeId of executionOrder) {
+    if (currentNodeId === nodeId) {
+      break;
+    }
+
+    const currentNode = nodesById.get(currentNodeId);
+
+    if (!currentNode || !hasToolKey(currentNode.toolKey)) {
+      continue;
+    }
+
+    const currentTool = getToolDefinition(currentNode.toolKey);
+
+    for (const artefact of currentTool.produces) {
+      producedArtefacts.add(artefact);
+    }
+  }
+
+  if (
+    producedArtefacts.has("propertyDetails") &&
+    !producedArtefacts.has("rentEstimates")
+  ) {
+    return "Property details are available upstream, but no rent estimates were found. Rent-dependent metrics such as cash flow and cap rate may be missing.";
+  }
+
+  return null;
+}

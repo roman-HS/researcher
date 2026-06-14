@@ -7,6 +7,16 @@ import {
 } from "@/modules/tools/schemas/placeholders";
 
 export const calculateMetricsConfigSchema = z.object({
+  downPaymentPercent: z.number().min(0).max(100).default(20),
+  interestRateAnnual: z.number().min(0).max(100).default(7),
+  loanTermYears: z.number().int().min(1).max(50).default(30),
+  vacancyRate: z.number().min(0).max(100).default(5),
+  repairsRate: z.number().min(0).max(100).default(5),
+  propertyManagementRate: z.number().min(0).max(100).default(8),
+  monthlyInsurance: z.number().min(0).default(150),
+  monthlyHoa: z.number().min(0).default(0),
+  propertyTaxRate: z.number().min(0).max(100).default(1.2),
+  closingCostsRate: z.number().min(0).max(100).default(3),
   includeCashFlow: z.boolean().default(true),
 });
 
