@@ -1,6 +1,9 @@
 export const WORKFLOWS_MODULE_ROOT = "workflows" as const;
 
 export {
+  compileWorkflowDefinition,
+} from "./compile-definition";
+export {
   createWorkflow,
   type CreateWorkflowContext,
 } from "./create-workflow";
@@ -18,8 +21,13 @@ export {
   type UpdateWorkflowDraftContext,
 } from "./update-draft-workflow";
 export {
+  publishWorkflow,
+  type PublishWorkflowContext,
+} from "./publish-workflow";
+export {
   WorkflowDefinitionValidationError,
   WorkflowLifecycleError,
+  invalidWorkflowDefinitionError,
   isWorkflowDefinitionValidationError,
   isWorkflowLifecycleError,
   type WorkflowLifecycleErrorCode,

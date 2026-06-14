@@ -5,6 +5,14 @@
  */
 
 export {
+  WORKFLOW_COMPILED_PLAN_VERSION,
+  parseWorkflowCompiledPlan,
+  workflowCompiledPlanSchema,
+  workflowCompiledPlanStepSchema,
+  type WorkflowCompiledPlan,
+  type WorkflowCompiledPlanStep,
+} from "./compiled-plan";
+export {
   workflowStatusLabels,
   workflowStatusSchema,
   workflowStatuses,
@@ -95,11 +103,13 @@ export {
   listWorkflowsStatusFilters,
   updateWorkflowDraftParamsSchema,
   updateWorkflowDraftRequestSchema,
+  publishWorkflowParamsSchema,
   workflowNameSchema,
   type CreateWorkflowRequest,
   type GetWorkflowParams,
   type ListWorkflowsQuery,
   type ListWorkflowsStatusFilter,
+  type PublishWorkflowParams,
   type UpdateWorkflowDraftParams,
   type UpdateWorkflowDraftRequest,
   type WorkflowName,
@@ -108,6 +118,8 @@ export {
   createWorkflowResponseSchema,
   getWorkflowResponseSchema,
   listWorkflowsResponseSchema,
+  publishWorkflowResponseSchema,
+  publishWorkflowValidationSchema,
   updateWorkflowDraftResponseSchema,
   updateWorkflowDraftValidationSchema,
   workflowDraftVersionDetailSchema,
@@ -117,6 +129,8 @@ export {
   type CreateWorkflowResponse,
   type GetWorkflowResponse,
   type ListWorkflowsResponse,
+  type PublishWorkflowResponse,
+  type PublishWorkflowValidation,
   type UpdateWorkflowDraftResponse,
   type UpdateWorkflowDraftValidation,
   type WorkflowDraftVersionDetail,

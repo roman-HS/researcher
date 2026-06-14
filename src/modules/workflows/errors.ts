@@ -1,9 +1,12 @@
+import { AppError } from "@/lib/api/errors";
+
 import type { WorkflowDefinitionValidationIssue } from "@/contracts/workflows/validation";
 
 export type WorkflowLifecycleErrorCode =
   | "invalid_transition"
   | "workflow_archived"
-  | "invalid_status";
+  | "invalid_status"
+  | "no_draft_to_publish";
 
 export class WorkflowLifecycleError extends Error {
   override readonly name = "WorkflowLifecycleError";
@@ -50,4 +53,21 @@ export function isWorkflowDefinitionValidationError(
   error: unknown,
 ): error is WorkflowDefinitionValidationError {
   return error instanceof WorkflowDefinitionValidationError;
+}
+
+export function invalidWorkflowDefinitionError(
+  errors: readonly WorkflowDefinitionValidationIssue[],
+  warnings: readonly WorkflowDefinitionValidationIssue[] = [],
+): AppError {
+  const message =
+    errors.length === 1
+      ? errors[0]?.message ?? "Workflow definition validation failed."
+      : `Workflow definition validation failed with ${errors.length} errors.`;
+
+  return new AppError("invalid_workflow_definition", message, {
+    details: {
+      errors: [...errors],
+      warnings: [...warnings],
+    },
+  });
 }

@@ -11,6 +11,7 @@ import { workflowDefinitionSchema } from "./internal";
  * @see Story 4.3.2 — Implement list workflows service
  * @see Story 4.3.3 — Implement get workflow detail service
  * @see Story 4.3.4 — Implement update draft workflow service
+ * @see Story 4.3.5 — Implement publish workflow service
  */
 
 export const workflowNameSchema = z.string().trim().min(1).max(120);
@@ -72,3 +73,7 @@ export type GetWorkflowParams = z.infer<typeof getWorkflowParamsSchema>;
 export const updateWorkflowDraftParamsSchema = getWorkflowParamsSchema;
 
 export type UpdateWorkflowDraftParams = GetWorkflowParams;
+
+export const publishWorkflowParamsSchema = getWorkflowParamsSchema;
+
+export type PublishWorkflowParams = GetWorkflowParams;

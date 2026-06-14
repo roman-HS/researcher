@@ -13,6 +13,7 @@ import { workflowNameSchema } from "./requests";
  * @see Story 4.3.2 — Implement list workflows service
  * @see Story 4.3.3 — Implement get workflow detail service
  * @see Story 4.3.4 — Implement update draft workflow service
+ * @see Story 4.3.5 — Implement publish workflow service
  */
 
 import { workflowDefinitionValidationIssueSchema } from "./validation";
@@ -113,4 +114,22 @@ export const updateWorkflowDraftResponseSchema = z.object({
 
 export type UpdateWorkflowDraftResponse = z.infer<
   typeof updateWorkflowDraftResponseSchema
+>;
+
+export const publishWorkflowValidationSchema = updateWorkflowDraftValidationSchema;
+
+export type PublishWorkflowValidation = UpdateWorkflowDraftValidation;
+
+export const publishWorkflowResponseSchema = z.object({
+  workflowId: domainEntityIdSchema,
+  publishedVersionId: domainEntityIdSchema,
+  publishedVersionNumber: z.number().int().positive(),
+  publishedAt: isoDateTimeSchema,
+  draftVersionId: domainEntityIdSchema,
+  workflowUpdatedAt: isoDateTimeSchema,
+  validation: publishWorkflowValidationSchema,
+});
+
+export type PublishWorkflowResponse = z.infer<
+  typeof publishWorkflowResponseSchema
 >;
