@@ -1884,7 +1884,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 1. Is auto-layout needed for launch demos?
 
-## HERE ------ Epic 5.3 — Tool palette and step editing
+## Epic 5.3 — Tool palette and step editing
 
 ### Story 5.3.1 — Build tool palette
 
@@ -2197,7 +2197,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 1. Should the summary include markdown export in V1?
 
-## Epic 5.4 — Builder validation, save, and publish
+## HERE ------ Epic 5.4 — Builder validation, save, and publish
 
 ### Story 5.4.1 — Add builder validation panel
 

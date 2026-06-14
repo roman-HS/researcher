@@ -198,3 +198,55 @@ export function getInsufficientUpstreamPropertyCountMessage(
 
   return `Minimum sample size (${minimumSampleSize}) exceeds the upstream Property Detail limit of ${upstreamLimit} properties. Area summaries may never meet the sample threshold.`;
 }
+
+export function upstreamProducesArtefactBeforeNode(
+  definition: WorkflowDefinition,
+  nodeId: string,
+  artefact: ToolArtefactType,
+): boolean {
+  let executionOrder: string[];
+
+  try {
+    executionOrder = resolveWorkflowExecutionOrder(definition);
+  } catch {
+    return false;
+  }
+
+  const nodesById = new Map(
+    definition.nodes.map((item) => [item.id, item] as const),
+  );
+  const producedArtefacts = new Set<ToolArtefactType>();
+
+  for (const currentNodeId of executionOrder) {
+    if (currentNodeId === nodeId) {
+      break;
+    }
+
+    const currentNode = nodesById.get(currentNodeId);
+
+    if (!currentNode || !hasToolKey(currentNode.toolKey)) {
+      continue;
+    }
+
+    const currentTool = getToolDefinition(currentNode.toolKey);
+
+    for (const produced of currentTool.produces) {
+      producedArtefacts.add(produced);
+    }
+  }
+
+  return producedArtefacts.has(artefact);
+}
+
+export function getMissingAreaAggregatesUpstreamMessage(
+  definition: WorkflowDefinition,
+  nodeId: string,
+): string | null {
+  if (
+    upstreamProducesArtefactBeforeNode(definition, nodeId, "areaAggregates")
+  ) {
+    return null;
+  }
+
+  return "Area highlights are enabled, but no upstream Aggregate Area step was found. The area section may be empty at run time.";
+}

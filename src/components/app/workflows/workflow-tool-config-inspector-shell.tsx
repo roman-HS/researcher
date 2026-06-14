@@ -6,6 +6,7 @@ import { AggregateAreaInspector } from "@/components/app/workflows/aggregate-are
 import { CalculateMetricsInspector } from "@/components/app/workflows/calculate-metrics-inspector";
 import { EstimateRentInspector } from "@/components/app/workflows/estimate-rent-inspector";
 import { FetchComparablesInspector } from "@/components/app/workflows/fetch-comparables-inspector";
+import { GenerateSummaryInspector } from "@/components/app/workflows/generate-summary-inspector";
 import { ListingSearchInspector } from "@/components/app/workflows/listing-search-inspector";
 import { PropertyDetailInspector } from "@/components/app/workflows/property-detail-inspector";
 import { ScorePropertiesInspector } from "@/components/app/workflows/score-properties-inspector";
@@ -35,6 +36,7 @@ const toolConfigInspectors: Partial<
   calculateMetrics: CalculateMetricsInspector,
   scoreProperties: ScorePropertiesInspector,
   aggregateArea: AggregateAreaInspector,
+  generateSummary: GenerateSummaryInspector,
 };
 
 type WorkflowToolConfigInspectorShellProps = {

@@ -6,7 +6,35 @@ import {
   toolOutputPlaceholderSchema,
 } from "@/modules/tools/schemas/placeholders";
 
+export const summarySectionKeys = [
+  "overview",
+  "topProperties",
+  "areaHighlights",
+  "warningsAndNotes",
+] as const;
+
+export const summarySectionKeySchema = z.enum(summarySectionKeys);
+
+export type SummarySectionKey = z.infer<typeof summarySectionKeySchema>;
+
+export const DEFAULT_INCLUDED_SUMMARY_SECTIONS = [
+  "overview",
+  "topProperties",
+  "warningsAndNotes",
+] as const satisfies readonly SummarySectionKey[];
+
 export const generateSummaryConfigSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "Summary title is required.")
+    .max(120, "Summary title must be 120 characters or fewer.")
+    .default("Investment analysis summary"),
+  includedSections: z
+    .array(summarySectionKeySchema)
+    .min(1, "Select at least one summary section.")
+    .default([...DEFAULT_INCLUDED_SUMMARY_SECTIONS]),
+  topPropertyCount: z.number().int().min(1).max(25).default(5),
   includeMarkdown: z.boolean().default(true),
 });
 
