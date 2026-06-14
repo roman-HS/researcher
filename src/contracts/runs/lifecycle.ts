@@ -52,3 +52,45 @@ export const workflowRunStepStatusLabels: Record<
   failed: "Failed",
   skipped: "Skipped",
 };
+
+const TERMINAL_RUN_STATUSES = [
+  "succeeded",
+  "partial",
+  "failed",
+  "canceled",
+] as const satisfies readonly WorkflowRunStatus[];
+
+const SUCCESSFUL_RUN_STATUSES = [
+  "succeeded",
+  "partial",
+] as const satisfies readonly WorkflowRunStatus[];
+
+const TERMINAL_STEP_STATUSES = [
+  "succeeded",
+  "failed",
+  "skipped",
+] as const satisfies readonly WorkflowRunStepStatus[];
+
+export function isTerminalRunStatus(
+  status: WorkflowRunStatus,
+): status is (typeof TERMINAL_RUN_STATUSES)[number] {
+  return (TERMINAL_RUN_STATUSES as readonly WorkflowRunStatus[]).includes(
+    status,
+  );
+}
+
+export function isSuccessfulRunStatus(
+  status: WorkflowRunStatus,
+): status is (typeof SUCCESSFUL_RUN_STATUSES)[number] {
+  return (SUCCESSFUL_RUN_STATUSES as readonly WorkflowRunStatus[]).includes(
+    status,
+  );
+}
+
+export function isTerminalStepStatus(
+  status: WorkflowRunStepStatus,
+): status is (typeof TERMINAL_STEP_STATUSES)[number] {
+  return (TERMINAL_STEP_STATUSES as readonly WorkflowRunStepStatus[]).includes(
+    status,
+  );
+}

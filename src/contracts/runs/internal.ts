@@ -12,9 +12,20 @@ export {
   workflowRunStepStatuses,
   workflowRunStepStatusLabels,
   workflowRunStepStatusSchema,
+  isSuccessfulRunStatus,
+  isTerminalRunStatus,
+  isTerminalStepStatus,
   type WorkflowRunStatus,
   type WorkflowRunStepStatus,
 } from "@/contracts/runs/lifecycle";
+export {
+  parseRunErrorJson,
+  parseRunStepErrorJson,
+  runErrorJsonSchema,
+  runStepErrorJsonSchema,
+  type RunErrorJson,
+  type RunStepErrorJson,
+} from "@/contracts/runs/run-error";
 export {
   buildPropertyKeyFromAddressFallback,
   buildPropertyKeyFromProviderId,
