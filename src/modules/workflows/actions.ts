@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
-import { createWorkflowRequestSchema } from "@/contracts/workflows/requests";
+import {
+  createWorkflowRequestSchema,
+  updateWorkflowDraftRequestSchema,
+} from "@/contracts/workflows/requests";
+import type { WorkflowDefinitionValidationIssue } from "@/contracts/workflows/validation";
 import { AppError, isAppError } from "@/lib/api/errors";
 import { requireUser } from "@/modules/auth/session";
 import { requireCurrentWorkspace } from "@/modules/workspace";
@@ -12,8 +16,12 @@ import { requireCurrentWorkspace } from "@/modules/workspace";
 import { archiveWorkflow } from "./archive-workflow";
 import { createWorkflow } from "./create-workflow";
 import { duplicateWorkflow } from "./duplicate-workflow";
-import { isWorkflowLifecycleError } from "./errors";
+import {
+  isWorkflowDefinitionValidationError,
+  isWorkflowLifecycleError,
+} from "./errors";
 import { formatWorkflowFieldErrors } from "./schemas";
+import { updateWorkflowDraft } from "./update-draft-workflow";
 
 export type CreateWorkflowActionState = {
   error?: string;
@@ -26,9 +34,18 @@ export type ArchiveWorkflowActionResult =
 
 export type DuplicateWorkflowActionResult = { ok: false; error: string };
 
+export type UpdateWorkflowDraftActionResult =
+  | { ok: true }
+  | {
+      ok: false;
+      error: string;
+      validationErrors?: WorkflowDefinitionValidationIssue[];
+    };
+
 const CREATE_WORKFLOW_FAILURE_MESSAGE = "Could not create workflow.";
 const ARCHIVE_WORKFLOW_FAILURE_MESSAGE = "Could not archive workflow.";
 const DUPLICATE_WORKFLOW_FAILURE_MESSAGE = "Could not duplicate workflow.";
+const UPDATE_DRAFT_FAILURE_MESSAGE = "Could not save draft.";
 
 function extractAppErrorFieldErrors(
   error: AppError,
@@ -153,4 +170,50 @@ export async function duplicateWorkflowAction(
 
   revalidatePath("/workflows");
   redirect(`/workflows/${newWorkflowId}`);
+}
+
+export async function updateWorkflowDraftAction(
+  workflowId: string,
+  definition: unknown,
+): Promise<UpdateWorkflowDraftActionResult> {
+  const parsedWorkflowId = domainEntityIdSchema.safeParse(workflowId);
+
+  if (!parsedWorkflowId.success) {
+    return { ok: false, error: "Invalid workflow." };
+  }
+
+  const parsedRequest = updateWorkflowDraftRequestSchema.safeParse({
+    definition,
+  });
+
+  if (!parsedRequest.success) {
+    return { ok: false, error: "Invalid workflow definition." };
+  }
+
+  try {
+    const user = await requireUser();
+    const workspace = await requireCurrentWorkspace();
+    await updateWorkflowDraft(parsedWorkflowId.data, parsedRequest.data, {
+      user,
+      workspace,
+    });
+  } catch (error) {
+    if (isWorkflowDefinitionValidationError(error)) {
+      return {
+        ok: false,
+        error: error.message,
+        validationErrors: [...error.errors],
+      };
+    }
+
+    if (isAppError(error) || isWorkflowLifecycleError(error)) {
+      return { ok: false, error: error.message };
+    }
+
+    return { ok: false, error: UPDATE_DRAFT_FAILURE_MESSAGE };
+  }
+
+  revalidatePath(`/workflows/${parsedWorkflowId.data}`);
+  revalidatePath("/workflows");
+  return { ok: true };
 }

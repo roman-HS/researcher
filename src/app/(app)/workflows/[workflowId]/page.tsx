@@ -46,6 +46,7 @@ export default async function WorkflowBuilderPage({
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <WorkflowBuilder
         key={workflow.workflowId}
+        workflowId={workflow.workflowId}
         workflowName={workflow.name}
         workflowDescription={workflow.description}
         initialDefinition={draftDefinition}

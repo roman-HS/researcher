@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
+import { WorkflowBuilderSaveDraftButton } from "@/components/app/workflows/workflow-builder-save-draft-button";
 import { WorkflowBuilderSidebar } from "@/components/app/workflows/workflow-builder-sidebar";
 import { WorkflowBuilderValidationPanel } from "@/components/app/workflows/workflow-builder-validation-panel";
 import { WorkflowBuilderValidationStatus } from "@/components/app/workflows/workflow-builder-validation-status";
@@ -20,7 +21,9 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ListToolsResponse } from "@/contracts/tools/responses";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
+import type { WorkflowDefinitionValidationIssue } from "@/contracts/workflows/validation";
 import { buildToolMetadataByKey } from "@/lib/workflows/builder-tool-metadata";
+import { definitionsEqual } from "@/lib/workflows/definition-equality";
 import { useWorkflowBuilderValidation } from "@/lib/workflows/use-workflow-builder-validation";
 import {
   WorkflowBuilderStoreProvider,
@@ -28,6 +31,7 @@ import {
 } from "@/stores/workflow-builder-store";
 
 type WorkflowBuilderProps = {
+  workflowId: string;
   workflowName: string;
   workflowDescription: string | null;
   initialDefinition: WorkflowDefinition;
@@ -80,18 +84,53 @@ function WorkflowBuilderBackButton() {
   );
 }
 
+type SaveValidationErrorState = {
+  definitionAtFailure: WorkflowDefinition;
+  errors: WorkflowDefinitionValidationIssue[];
+};
+
 function WorkflowBuilderShell({
+  workflowId,
   workflowName,
   workflowDescription,
   initialToolCatalog,
 }: Omit<WorkflowBuilderProps, "initialDefinition">) {
+  const definition = useWorkflowBuilderStore((state) => state.definition);
   const isDirty = useWorkflowBuilderStore((state) => state.isDirty);
   const { validation, nodeValidationStatusByNodeId, eligibility } =
     useWorkflowBuilderValidation();
+  const [saveValidationState, setSaveValidationState] =
+    useState<SaveValidationErrorState | null>(null);
   const toolMetadataByKey = useMemo(
     () => buildToolMetadataByKey(initialToolCatalog),
     [initialToolCatalog],
   );
+
+  const saveValidationErrors = useMemo(() => {
+    if (
+      !saveValidationState ||
+      !definitionsEqual(definition, saveValidationState.definitionAtFailure)
+    ) {
+      return [];
+    }
+
+    return saveValidationState.errors;
+  }, [definition, saveValidationState]);
+
+  function handleSaveValidationErrors(
+    errors: readonly WorkflowDefinitionValidationIssue[],
+    definitionAtFailure: WorkflowDefinition,
+  ) {
+    if (errors.length === 0) {
+      setSaveValidationState(null);
+      return;
+    }
+
+    setSaveValidationState({
+      definitionAtFailure,
+      errors: [...errors],
+    });
+  }
 
   useEffect(() => {
     function handleBeforeUnload(event: BeforeUnloadEvent) {
@@ -132,7 +171,13 @@ function WorkflowBuilderShell({
             </p>
           ) : null}
         </div>
-        <WorkflowBuilderBackButton />
+        <div className="flex shrink-0 items-center gap-2">
+          <WorkflowBuilderSaveDraftButton
+            workflowId={workflowId}
+            onSaveValidationErrors={handleSaveValidationErrors}
+          />
+          <WorkflowBuilderBackButton />
+        </div>
       </div>
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -142,7 +187,10 @@ function WorkflowBuilderShell({
               nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
             />
           </div>
-          <WorkflowBuilderValidationPanel validation={validation} />
+          <WorkflowBuilderValidationPanel
+            validation={validation}
+            saveErrors={saveValidationErrors}
+          />
         </div>
         <WorkflowBuilderSidebar
           toolCatalog={initialToolCatalog}
@@ -154,6 +202,7 @@ function WorkflowBuilderShell({
 }
 
 export function WorkflowBuilder({
+  workflowId,
   workflowName,
   workflowDescription,
   initialDefinition,
@@ -162,6 +211,7 @@ export function WorkflowBuilder({
   return (
     <WorkflowBuilderStoreProvider initialDefinition={initialDefinition}>
       <WorkflowBuilderShell
+        workflowId={workflowId}
         workflowName={workflowName}
         workflowDescription={workflowDescription}
         initialToolCatalog={initialToolCatalog}

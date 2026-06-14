@@ -46,3 +46,24 @@ export function validationIssueKey(issue: WorkflowDefinitionValidationIssue): st
     issue.message,
   ].join("|");
 }
+
+export function mergeValidationIssues(
+  primary: readonly WorkflowDefinitionValidationIssue[],
+  additional: readonly WorkflowDefinitionValidationIssue[],
+): WorkflowDefinitionValidationIssue[] {
+  const seen = new Set<string>();
+  const merged: WorkflowDefinitionValidationIssue[] = [];
+
+  for (const issue of [...additional, ...primary]) {
+    const key = validationIssueKey(issue);
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    merged.push(issue);
+  }
+
+  return merged;
+}

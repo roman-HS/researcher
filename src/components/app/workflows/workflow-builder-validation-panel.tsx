@@ -15,6 +15,7 @@ import type { WorkflowDefinitionValidationIssue } from "@/contracts/workflows/va
 import type { WorkflowBuilderValidationState } from "@/lib/workflows/use-workflow-builder-validation";
 import {
   getValidationIssueImpactLabel,
+  mergeValidationIssues,
   validationIssueKey,
 } from "@/lib/workflows/validation-display";
 import { useWorkflowBuilderStore } from "@/stores/workflow-builder-store";
@@ -28,7 +29,25 @@ import { cn } from "@/lib/utils";
 
 type WorkflowBuilderValidationPanelProps = {
   validation: WorkflowBuilderValidationState["validation"];
+  saveErrors?: readonly WorkflowDefinitionValidationIssue[];
 };
+
+function useDisplayValidation(
+  validation: WorkflowBuilderValidationState["validation"],
+  saveErrors: readonly WorkflowDefinitionValidationIssue[] | undefined,
+) {
+  const mergedErrors = mergeValidationIssues(
+    validation.errors,
+    saveErrors ?? [],
+  );
+  const issueCount = mergedErrors.length + validation.warnings.length;
+
+  return {
+    errors: mergedErrors,
+    warnings: validation.warnings,
+    issueCount,
+  };
+}
 
 function ValidationIssueRow({
   issue,
@@ -122,11 +141,13 @@ function ValidationIssueGroup({
 
 export function WorkflowBuilderValidationPanel({
   validation,
+  saveErrors = [],
 }: WorkflowBuilderValidationPanelProps) {
   const focusNodeFromValidation = useWorkflowBuilderStore(
     (state) => state.focusNodeFromValidation,
   );
-  const issueCount = validation.errors.length + validation.warnings.length;
+  const displayValidation = useDisplayValidation(validation, saveErrors);
+  const issueCount = displayValidation.issueCount;
   const [expanded, setExpanded] = useState(issueCount > 0);
   const [highlightedIssueKey, setHighlightedIssueKey] = useState<string | null>(
     null,
@@ -144,11 +165,11 @@ export function WorkflowBuilderValidationPanel({
     issueCount === 0
       ? "No validation issues"
       : [
-          validation.errors.length > 0
-            ? `${validation.errors.length} error${validation.errors.length === 1 ? "" : "s"}`
+          displayValidation.errors.length > 0
+            ? `${displayValidation.errors.length} error${displayValidation.errors.length === 1 ? "" : "s"}`
             : null,
-          validation.warnings.length > 0
-            ? `${validation.warnings.length} warning${validation.warnings.length === 1 ? "" : "s"}`
+          displayValidation.warnings.length > 0
+            ? `${displayValidation.warnings.length} warning${displayValidation.warnings.length === 1 ? "" : "s"}`
             : null,
         ]
           .filter(Boolean)
@@ -160,7 +181,7 @@ export function WorkflowBuilderValidationPanel({
         <div className="flex min-w-0 items-center gap-2 text-sm">
           {issueCount === 0 ? (
             <CheckCircle2Icon className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-          ) : validation.errors.length > 0 ? (
+          ) : displayValidation.errors.length > 0 ? (
             <AlertCircleIcon className="size-4 shrink-0 text-destructive" />
           ) : (
             <AlertTriangleIcon className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
@@ -194,13 +215,13 @@ export function WorkflowBuilderValidationPanel({
             <div className="space-y-3">
               <ValidationIssueGroup
                 title="Errors"
-                issues={validation.errors}
+                issues={displayValidation.errors}
                 highlightedIssueKey={highlightedIssueKey}
                 onNavigate={handleNavigate}
               />
               <ValidationIssueGroup
                 title="Warnings"
-                issues={validation.warnings}
+                issues={displayValidation.warnings}
                 highlightedIssueKey={highlightedIssueKey}
                 onNavigate={handleNavigate}
               />
