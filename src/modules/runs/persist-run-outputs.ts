@@ -83,6 +83,8 @@ export function buildPropertyResultRows(
   return input.workingSet.propertyOrder.map((propertyKey, displayOrder) => {
     const listing = input.workingSet.listingsByKey[propertyKey];
     const detail = input.workingSet.detailsByKey[propertyKey];
+    const rentEstimate = input.workingSet.rentEstimatesByKey[propertyKey];
+    const comparables = input.workingSet.comparablesByKey[propertyKey];
     const metrics = input.workingSet.metricsByKey[propertyKey];
     const score = input.workingSet.scoresByKey[propertyKey];
     const itemErrors = input.itemErrorsByPropertyKey[propertyKey] ?? [];
@@ -104,6 +106,8 @@ export function buildPropertyResultRows(
       addressSummaryJson: buildAddressSummary(detail, listing),
       listingJson: listing ?? null,
       detailJson: detail ?? null,
+      rentEstimateJson: rentEstimate ?? null,
+      comparablesJson: comparables ?? null,
       metricsJson: metrics ?? null,
       scoreJson: score ?? null,
       warningsJson:

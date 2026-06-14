@@ -171,6 +171,47 @@ describe("buildPropertyResultRows", () => {
     expect(row?.capRate).toBeNull();
     expect(row?.monthlyCashFlow).toBeNull();
   });
+
+  it("persists rent estimate and comparables payloads when present", () => {
+    const workingSet = createEmptyExecutionWorkingSet();
+    workingSet.propertyOrder = ["provider:1"];
+    workingSet.rentEstimatesByKey = {
+      "provider:1": {
+        source: { provider: "zillow", externalId: "1" },
+        estimatedRent: { amount: "3500.00", currency: "USD" },
+        rentRangeLow: { amount: "3200.00", currency: "USD" },
+        rentRangeHigh: { amount: "3800.00", currency: "USD" },
+        confidenceLabel: "High",
+      },
+    };
+    workingSet.comparablesByKey = {
+      "provider:1": {
+        subjectSource: { provider: "zillow", externalId: "1" },
+        comparables: [
+          {
+            source: { provider: "zillow", externalId: "2" },
+            address: { line1: "125 Main St", country: "US" },
+            soldPrice: { amount: "430000.00", currency: "USD" },
+            distanceMiles: 0.4,
+          },
+        ],
+      },
+    };
+
+    const rows = buildPropertyResultRows({
+      runId,
+      workingSet,
+      itemErrorsByPropertyKey: {},
+      propertyWarningsByPropertyKey: {},
+    });
+
+    expect(rows[0]?.rentEstimateJson).toEqual(
+      workingSet.rentEstimatesByKey["provider:1"],
+    );
+    expect(rows[0]?.comparablesJson).toEqual(
+      workingSet.comparablesByKey["provider:1"],
+    );
+  });
 });
 
 describe("buildAreaResultRows", () => {

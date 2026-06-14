@@ -15,6 +15,7 @@ import { apiClientGet } from "@/lib/api/browser-client";
 /**
  * @see Story 8.2.4 — Add run status polling
  * @see Story 8.3.1 — Build property results table
+ * @see Story 8.3.2 — Build property detail drawer
  */
 
 type RunDetailViewProps = {

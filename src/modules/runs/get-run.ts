@@ -10,7 +10,12 @@ import {
   propertyScoreSchema,
   workflowSummarySchema,
 } from "@/contracts/domain/analysis";
-import { propertyDetailSchema, propertyListingSchema } from "@/contracts/domain/property";
+import {
+  comparableSetSchema,
+  propertyDetailSchema,
+  propertyListingSchema,
+  rentEstimateSchema,
+} from "@/contracts/domain/property";
 import type { WorkflowCompiledPlan, WorkflowCompiledPlanStep } from "@/contracts/workflows/compiled-plan";
 import type { GetRunDetailQuery } from "@/contracts/runs/requests";
 import type {
@@ -266,6 +271,24 @@ function parseOptionalWorkflowSummary(value: unknown) {
   return result.success ? result.data : null;
 }
 
+function parseOptionalRentEstimate(value: unknown) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const result = rentEstimateSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+
+function parseOptionalComparableSet(value: unknown) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const result = comparableSetSchema.safeParse(value);
+  return result.success ? result.data : null;
+}
+
 function parseOptionalPropertyListing(value: unknown) {
   if (value === null || value === undefined) {
     return null;
@@ -333,6 +356,8 @@ function toPropertyResult(
     addressSummary: parseOptionalAddressSummary(row.addressSummaryJson),
     listing: parseOptionalPropertyListing(row.listingJson),
     detail: parseOptionalPropertyDetail(row.detailJson),
+    rentEstimate: parseOptionalRentEstimate(row.rentEstimateJson),
+    comparables: parseOptionalComparableSet(row.comparablesJson),
     metrics: parseOptionalMetricBundle(row.metricsJson),
     score: parseOptionalPropertyScore(row.scoreJson),
     warnings: parseStringArray(row.warningsJson),

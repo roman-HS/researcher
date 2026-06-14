@@ -23,6 +23,8 @@ function createPropertyResult(
     addressSummary: null,
     listing: null,
     detail: null,
+    rentEstimate: null,
+    comparables: null,
     metrics: null,
     score: null,
     warnings: [],

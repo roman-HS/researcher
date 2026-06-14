@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 import { EmptyState } from "@/components/app/empty-state";
+import { RunPropertyResultDrawer } from "@/components/app/runs/run-property-result-drawer";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -42,6 +43,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * @see Story 8.3.1 — Build property results table
+ * @see Story 8.3.2 — Build property detail drawer
  */
 
 type RunPropertyResultsTableProps = {
@@ -144,13 +146,6 @@ function SortableHeader({
           onClick={() => {
             onSort(sortKey);
           }}
-          aria-sort={
-            isActive
-              ? sortDirection === "asc"
-                ? "ascending"
-                : "descending"
-              : "none"
-          }
         >
           {label}
           {isActive ? (
@@ -176,11 +171,28 @@ export function RunPropertyResultsTable({
   );
   const [sortDirection, setSortDirection] =
     useState<PropertyResultSortDirection>(DEFAULT_PROPERTY_RESULT_SORT.direction);
+  const [selectedPropertyResultId, setSelectedPropertyResultId] = useState<
+    string | null
+  >(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const visibleRows = useMemo(() => {
     const filtered = filterPropertyResults(propertyResults, filter);
     return sortPropertyResults(filtered, sortKey, sortDirection);
   }, [filter, propertyResults, sortDirection, sortKey]);
+
+  const selectedPropertyResult = useMemo(() => {
+    if (!selectedPropertyResultId) {
+      return null;
+    }
+
+    return (
+      propertyResults.find(
+        (propertyResult) =>
+          propertyResult.propertyResultId === selectedPropertyResultId,
+      ) ?? null
+    );
+  }, [propertyResults, selectedPropertyResultId]);
 
   function handleSort(nextSortKey: PropertyResultSortKey) {
     if (nextSortKey === sortKey) {
@@ -196,10 +208,24 @@ export function RunPropertyResultsTable({
     );
   }
 
+  function handleRowClick(propertyResult: RunDetailPropertyResult) {
+    setSelectedPropertyResultId(propertyResult.propertyResultId);
+    setIsDrawerOpen(true);
+  }
+
+  function handleDrawerOpenChange(open: boolean) {
+    setIsDrawerOpen(open);
+
+    if (!open) {
+      setSelectedPropertyResultId(null);
+    }
+  }
+
   const isActiveRun = !isTerminalRunStatus(runStatus);
 
   return (
-    <section className="space-y-4 border-t pt-6">
+    <>
+      <section className="space-y-4 border-t pt-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-sm font-medium">Property results</h2>
@@ -286,7 +312,13 @@ export function RunPropertyResultsTable({
                 const estimatedRent = getEstimatedMonthlyRent(propertyResult);
 
                 return (
-                  <TableRow key={propertyResult.propertyResultId}>
+                  <TableRow
+                    key={propertyResult.propertyResultId}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      handleRowClick(propertyResult);
+                    }}
+                  >
                     <TableCell className="min-w-48 max-w-64">
                       <div className="space-y-0.5">
                         <p className="font-medium leading-snug">
@@ -328,6 +360,13 @@ export function RunPropertyResultsTable({
           </Table>
         </div>
       )}
-    </section>
+      </section>
+
+      <RunPropertyResultDrawer
+        propertyResult={selectedPropertyResult}
+        open={isDrawerOpen}
+        onOpenChange={handleDrawerOpenChange}
+      />
+    </>
   );
 }

@@ -12,7 +12,12 @@ import {
   domainEntityIdSchema,
   isoDateTimeSchema,
 } from "@/contracts/domain/primitives";
-import { propertyDetailSchema, propertyListingSchema } from "@/contracts/domain/property";
+import {
+  comparableSetSchema,
+  propertyDetailSchema,
+  propertyListingSchema,
+  rentEstimateSchema,
+} from "@/contracts/domain/property";
 import { toolKeySchema } from "@/contracts/tools/internal";
 import { workflowRuntimeInputsSchema } from "@/contracts/workflows/runtime-inputs";
 import { workflowNameSchema } from "@/contracts/workflows/requests";
@@ -138,6 +143,8 @@ export const runDetailPropertyResultSchema = z.object({
   addressSummary: runDetailAddressSummarySchema.nullable(),
   listing: propertyListingSchema.nullable(),
   detail: propertyDetailSchema.nullable(),
+  rentEstimate: rentEstimateSchema.nullable(),
+  comparables: comparableSetSchema.nullable(),
   metrics: metricBundleSchema.nullable(),
   score: propertyScoreSchema.nullable(),
   warnings: z.array(z.string()),

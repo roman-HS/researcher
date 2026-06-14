@@ -16,7 +16,12 @@ import type {
   MetricBundle,
   PropertyScore,
 } from "@/contracts/domain/analysis";
-import type { PropertyDetail, PropertyListing } from "@/contracts/domain/property";
+import type {
+  ComparableSet,
+  PropertyDetail,
+  PropertyListing,
+  RentEstimate,
+} from "@/contracts/domain/property";
 import type { Address } from "@/contracts/domain/primitives";
 
 import { user } from "./auth";
@@ -144,6 +149,8 @@ export const runPropertyResults = pgTable(
     ),
     listingJson: jsonPayloadColumn<PropertyListing>("listingJson"),
     detailJson: jsonPayloadColumn<PropertyDetail>("detailJson"),
+    rentEstimateJson: jsonPayloadColumn<RentEstimate>("rentEstimateJson"),
+    comparablesJson: jsonPayloadColumn<ComparableSet>("comparablesJson"),
     metricsJson: jsonPayloadColumn<MetricBundle>("metricsJson"),
     scoreJson: jsonPayloadColumn<PropertyScore>("scoreJson"),
     warningsJson: jsonPayloadColumn("warningsJson"),
