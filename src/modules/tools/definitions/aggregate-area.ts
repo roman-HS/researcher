@@ -6,8 +6,35 @@ import {
   toolOutputPlaceholderSchema,
 } from "@/modules/tools/schemas/placeholders";
 
+export const aggregateAreaMetricKeys = [
+  "capRate",
+  "cashOnCashReturn",
+  "grossRentMultiplier",
+  "monthlyCashFlow",
+  "estimatedMonthlyIncome",
+  "estimatedMonthlyExpenses",
+  "monthlyMortgagePayment",
+] as const;
+
+export const aggregateAreaMetricKeySchema = z.enum(aggregateAreaMetricKeys);
+
+export type AggregateAreaMetricKey = z.infer<typeof aggregateAreaMetricKeySchema>;
+
+export const DEFAULT_AGGREGATE_AREA_METRICS = [
+  "capRate",
+  "cashOnCashReturn",
+  "monthlyCashFlow",
+] as const satisfies readonly AggregateAreaMetricKey[];
+
+export const aggregateAreaGroupingLevels = ["zip", "city", "other"] as const;
+
 export const aggregateAreaConfigSchema = z.object({
-  groupingLevel: z.enum(["zip", "city", "other"]).default("zip"),
+  groupingLevel: z.enum(aggregateAreaGroupingLevels).default("zip"),
+  minimumSampleSize: z.number().int().min(1).default(3),
+  aggregateMetrics: z
+    .array(aggregateAreaMetricKeySchema)
+    .min(1, "Select at least one metric to aggregate.")
+    .default([...DEFAULT_AGGREGATE_AREA_METRICS]),
 });
 
 export type AggregateAreaConfig = z.infer<typeof aggregateAreaConfigSchema>;

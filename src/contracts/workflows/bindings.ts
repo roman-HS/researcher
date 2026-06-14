@@ -52,6 +52,7 @@ export const workflowStepConfigValueSchema = z.union([
   z.number(),
   z.boolean(),
   z.null(),
+  z.array(z.string()),
 ]);
 
 export type WorkflowStepConfigValue = z.infer<

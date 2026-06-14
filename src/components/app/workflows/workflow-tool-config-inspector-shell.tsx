@@ -2,6 +2,7 @@
 
 import type { ComponentType } from "react";
 
+import { AggregateAreaInspector } from "@/components/app/workflows/aggregate-area-inspector";
 import { CalculateMetricsInspector } from "@/components/app/workflows/calculate-metrics-inspector";
 import { EstimateRentInspector } from "@/components/app/workflows/estimate-rent-inspector";
 import { FetchComparablesInspector } from "@/components/app/workflows/fetch-comparables-inspector";
@@ -33,6 +34,7 @@ const toolConfigInspectors: Partial<
   estimateRent: EstimateRentInspector,
   calculateMetrics: CalculateMetricsInspector,
   scoreProperties: ScorePropertiesInspector,
+  aggregateArea: AggregateAreaInspector,
 };
 
 type WorkflowToolConfigInspectorShellProps = {

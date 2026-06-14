@@ -2,6 +2,10 @@ import type { ToolArtefactType } from "@/contracts/tools/internal";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
 import { resolveWorkflowExecutionOrder } from "@/contracts/workflows/graph-validation";
 import { formatArtefactList } from "@/lib/workflows/tool-display";
+import {
+  propertyDetailConfigSchema,
+  propertyDetailTool,
+} from "@/modules/tools/definitions/property-detail";
 import { getToolDefinition, hasToolKey } from "@/modules/tools/registry";
 
 /**
@@ -140,4 +144,57 @@ export function getMissingRentEstimatesUpstreamMessage(
   }
 
   return null;
+}
+
+export function getUpstreamMaxPropertiesLimit(
+  definition: WorkflowDefinition,
+  nodeId: string,
+): number | null {
+  let executionOrder: string[];
+
+  try {
+    executionOrder = resolveWorkflowExecutionOrder(definition);
+  } catch {
+    return null;
+  }
+
+  const nodesById = new Map(
+    definition.nodes.map((item) => [item.id, item] as const),
+  );
+  let limit: number | null = null;
+
+  for (const currentNodeId of executionOrder) {
+    if (currentNodeId === nodeId) {
+      break;
+    }
+
+    const currentNode = nodesById.get(currentNodeId);
+
+    if (!currentNode || currentNode.toolKey !== propertyDetailTool.key) {
+      continue;
+    }
+
+    const parsedConfig = propertyDetailConfigSchema.safeParse(currentNode.config);
+    const maxProperties = parsedConfig.success
+      ? parsedConfig.data.maxProperties
+      : 50;
+
+    limit = limit === null ? maxProperties : Math.min(limit, maxProperties);
+  }
+
+  return limit;
+}
+
+export function getInsufficientUpstreamPropertyCountMessage(
+  definition: WorkflowDefinition,
+  nodeId: string,
+  minimumSampleSize: number,
+): string | null {
+  const upstreamLimit = getUpstreamMaxPropertiesLimit(definition, nodeId);
+
+  if (upstreamLimit === null || minimumSampleSize <= upstreamLimit) {
+    return null;
+  }
+
+  return `Minimum sample size (${minimumSampleSize}) exceeds the upstream Property Detail limit of ${upstreamLimit} properties. Area summaries may never meet the sample threshold.`;
 }
