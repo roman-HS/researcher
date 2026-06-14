@@ -7,6 +7,7 @@ import { EstimateRentInspector } from "@/components/app/workflows/estimate-rent-
 import { FetchComparablesInspector } from "@/components/app/workflows/fetch-comparables-inspector";
 import { ListingSearchInspector } from "@/components/app/workflows/listing-search-inspector";
 import { PropertyDetailInspector } from "@/components/app/workflows/property-detail-inspector";
+import { ScorePropertiesInspector } from "@/components/app/workflows/score-properties-inspector";
 import { WorkflowToolConfigPlaceholder } from "@/components/app/workflows/workflow-tool-config-placeholder";
 import type { InspectorComponentKey } from "@/contracts/tools/internal";
 
@@ -31,6 +32,7 @@ const toolConfigInspectors: Partial<
   fetchComparables: FetchComparablesInspector,
   estimateRent: EstimateRentInspector,
   calculateMetrics: CalculateMetricsInspector,
+  scoreProperties: ScorePropertiesInspector,
 };
 
 type WorkflowToolConfigInspectorShellProps = {
