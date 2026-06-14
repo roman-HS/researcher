@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   addEdge,
   applyEdgeChanges,
@@ -9,19 +9,33 @@ import {
   type Connection,
   type EdgeChange,
   type OnNodeDrag,
+  type OnSelectionChangeFunc,
   ReactFlow,
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import { WorkflowBuilderCanvasControls } from "@/components/app/workflows/workflow-builder-canvas-controls";
 import { workflowToolNodeTypes } from "@/components/app/workflows/workflow-tool-node";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import type { WorkflowBuilderToolMetadata } from "@/lib/workflows/builder-tool-metadata";
 import { isValidWorkflowConnection } from "@/lib/workflows/graph-connection";
 import type { WorkflowNodeValidationStatus } from "@/lib/workflows/node-validation-status";
 import {
   flowToWorkflowDefinition,
+  removeNodesFromWorkflowDefinition,
   workflowDefinitionToFlow,
+  workflowNodeHasIncidentEdges,
   type WorkflowFlowEdge,
   type WorkflowFlowNode,
 } from "@/lib/workflows/react-flow";
@@ -38,6 +52,14 @@ export function WorkflowBuilderCanvas({
 }: WorkflowBuilderCanvasProps) {
   const definition = useWorkflowBuilderStore((state) => state.definition);
   const setDefinition = useWorkflowBuilderStore((state) => state.setDefinition);
+
+  const [hasSelectedNode, setHasSelectedNode] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<
+    WorkflowFlowNode[] | null
+  >(null);
+  const deleteConfirmationResolverRef = useRef<
+    ((confirmed: boolean) => void) | null
+  >(null);
 
   const flowOptions = useMemo(
     () => ({
@@ -75,6 +97,45 @@ export function WorkflowBuilderCanvas({
       );
     },
     [setDefinition],
+  );
+
+  const requestDeleteConfirmation = useCallback(
+    (nodesToDelete: WorkflowFlowNode[]) =>
+      new Promise<boolean>((resolve) => {
+        deleteConfirmationResolverRef.current = resolve;
+        setPendingDelete(nodesToDelete);
+      }),
+    [],
+  );
+
+  const resolveDeleteConfirmation = useCallback((confirmed: boolean) => {
+    deleteConfirmationResolverRef.current?.(confirmed);
+    deleteConfirmationResolverRef.current = null;
+    setPendingDelete(null);
+  }, []);
+
+  const deleteNodes = useCallback(
+    async (nodesToDelete: WorkflowFlowNode[]) => {
+      if (nodesToDelete.length === 0) {
+        return;
+      }
+
+      const needsConfirmation = nodesToDelete.some((node) =>
+        workflowNodeHasIncidentEdges(node.id, definition),
+      );
+
+      if (needsConfirmation) {
+        const confirmed = await requestDeleteConfirmation(nodesToDelete);
+
+        if (!confirmed) {
+          return;
+        }
+      }
+
+      const nodeIds = nodesToDelete.map((node) => node.id);
+      setDefinition(removeNodesFromWorkflowDefinition(definition, nodeIds));
+    },
+    [definition, requestDeleteConfirmation, setDefinition],
   );
 
   const handleNodeDragStop = useCallback<OnNodeDrag<WorkflowFlowNode>>(
@@ -129,6 +190,18 @@ export function WorkflowBuilderCanvas({
     [definition],
   );
 
+  const handleSelectionChange = useCallback<OnSelectionChangeFunc>(
+    ({ nodes: selectedNodes }) => {
+      setHasSelectedNode(selectedNodes.length > 0);
+    },
+    [],
+  );
+
+  const handleDeleteSelected = useCallback(() => {
+    const selectedNodes = nodes.filter((node) => node.selected);
+    void deleteNodes(selectedNodes);
+  }, [deleteNodes, nodes]);
+
   const handleBeforeDelete = useCallback(
     async ({
       nodes: nodesToDelete,
@@ -138,6 +211,7 @@ export function WorkflowBuilderCanvas({
       edges: WorkflowFlowEdge[];
     }) => {
       if (nodesToDelete.length > 0) {
+        await deleteNodes(nodesToDelete);
         return false;
       }
 
@@ -155,8 +229,16 @@ export function WorkflowBuilderCanvas({
       commitGraph(nodes, nextEdges, definition);
       return false;
     },
-    [commitGraph, definition, edges, nodes],
+    [commitGraph, definition, deleteNodes, edges, nodes],
   );
+
+  const pendingDeleteTitles =
+    pendingDelete?.map((node) => node.data.workflowNode.title).join(", ") ??
+    "";
+  const pendingDeleteIsConnected =
+    pendingDelete?.some((node) =>
+      workflowNodeHasIncidentEdges(node.id, definition),
+    ) ?? false;
 
   return (
     <div className="h-full w-full">
@@ -168,6 +250,7 @@ export function WorkflowBuilderCanvas({
         onNodeDragStop={handleNodeDragStop}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
+        onSelectionChange={handleSelectionChange}
         isValidConnection={handleIsValidConnection}
         onBeforeDelete={handleBeforeDelete}
         nodesDraggable
@@ -183,7 +266,55 @@ export function WorkflowBuilderCanvas({
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={16} />
+        <WorkflowBuilderCanvasControls
+          hasSelectedNode={hasSelectedNode}
+          onDeleteSelected={handleDeleteSelected}
+        />
       </ReactFlow>
+
+      <AlertDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            resolveDeleteConfirmation(false);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete workflow step?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDeleteIsConnected ? (
+                <>
+                  <span className="font-medium text-foreground">
+                    {pendingDeleteTitles}
+                  </span>{" "}
+                  is connected to other steps. Deleting it will remove its
+                  connections, and downstream steps may become disconnected
+                  until you reconnect the workflow.
+                </>
+              ) : (
+                <>
+                  Delete{" "}
+                  <span className="font-medium text-foreground">
+                    {pendingDeleteTitles}
+                  </span>
+                  ? This action cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={() => resolveDeleteConfirmation(true)}
+            >
+              Delete step
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

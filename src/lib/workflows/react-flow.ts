@@ -17,6 +17,7 @@ import {
  *
  * @see Story 5.2.1 — Add React Flow to the builder route
  * @see Story 5.2.2 — Implement custom workflow node component
+ * @see Story 5.2.4 — Add basic canvas controls
  */
 
 export type WorkflowNodeHandleRole =
@@ -113,6 +114,31 @@ export function workflowDefinitionToFlow(
   }));
 
   return { nodes, edges };
+}
+
+export function workflowNodeHasIncidentEdges(
+  nodeId: string,
+  definition: WorkflowDefinition,
+): boolean {
+  return definition.edges.some(
+    (edge) => edge.source === nodeId || edge.target === nodeId,
+  );
+}
+
+export function removeNodesFromWorkflowDefinition(
+  baseDefinition: WorkflowDefinition,
+  nodeIds: readonly string[],
+): WorkflowDefinition {
+  const idsToRemove = new Set(nodeIds);
+
+  return {
+    ...baseDefinition,
+    nodes: baseDefinition.nodes.filter((node) => !idsToRemove.has(node.id)),
+    edges: baseDefinition.edges.filter(
+      (edge) =>
+        !idsToRemove.has(edge.source) && !idsToRemove.has(edge.target),
+    ),
+  };
 }
 
 export function flowToWorkflowDefinition(

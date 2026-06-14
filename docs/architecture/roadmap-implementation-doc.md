@@ -1800,7 +1800,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 1. Should builder URLs include version IDs or always resolve to the current draft?
 
-### HERE ------ Story 5.2.2 — Implement custom workflow node component
+### Story 5.2.2 — Implement custom workflow node component
 
 **Objective:** Display tool steps as product-specific nodes.
 
@@ -1884,7 +1884,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 1. Is auto-layout needed for launch demos?
 
-## Epic 5.3 — Tool palette and step editing
+## HERE ------ Epic 5.3 — Tool palette and step editing
 
 ### Story 5.3.1 — Build tool palette
 
