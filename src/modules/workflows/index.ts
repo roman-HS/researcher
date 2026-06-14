@@ -5,6 +5,11 @@ export {
   type CreateWorkflowContext,
 } from "./create-workflow";
 export {
+  listWorkflows,
+  type ListWorkflowsContext,
+  type ListWorkflowsResult,
+} from "./list-workflows";
+export {
   WorkflowDefinitionValidationError,
   WorkflowLifecycleError,
   isWorkflowDefinitionValidationError,
