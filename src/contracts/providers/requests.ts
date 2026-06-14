@@ -1,15 +1,13 @@
 /**
  * Outbound provider API request schemas.
  *
- * Listing search confirmed in Story 6.1.1; other Zillow tools remain placeholders.
+ * Listing search confirmed in Story 6.1.1; property detail in Story 6.1.2.
  */
 
 export {
   comparablesRequestSchema,
   listingSearchRequestSchema,
   propertyDetailRequestSchema,
-  propertyLookupByAddressRequestSchema,
-  propertyLookupByProviderIdRequestSchema,
   propertyLookupRequestSchema,
   rentEstimateRequestSchema,
   type ComparablesRequest,

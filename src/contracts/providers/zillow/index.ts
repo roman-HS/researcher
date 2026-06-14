@@ -59,18 +59,23 @@ export {
 } from "@/contracts/providers/zillow/listing-search";
 
 export {
+  propertyDetailEndpointPath,
   propertyDetailItemSchema,
+  propertyDetailPriceHistoryItemSchema,
+  propertyDetailProviderIdSchema,
   propertyDetailRequestSchema,
+  propertyDetailResoFactsSchema,
   propertyDetailResponseSchema,
+  propertyDetailsPayloadSchema,
   propertyDetailToolKey,
   type PropertyDetailItem,
+  type PropertyDetailProviderId,
   type PropertyDetailRequest,
   type PropertyDetailResponse,
+  type PropertyDetailsPayload,
 } from "@/contracts/providers/zillow/property-detail";
 
 export {
-  propertyLookupByAddressRequestSchema,
-  propertyLookupByProviderIdRequestSchema,
   propertyLookupRequestSchema,
   propertyLookupResponseSchema,
   propertyLookupToolKey,

@@ -1,46 +1,34 @@
-import { z } from "zod";
-
-import { propertyDetailItemSchema } from "@/contracts/providers/zillow/property-detail";
-import {
-  zillowAddressFragmentSchema,
-  zillowProviderIdSchema,
-} from "@/contracts/providers/zillow/shared";
-
 /**
- * UNVERIFIED optional placeholder for direct property lookup by address or provider ID.
- * Confirm supported lookup modes in Story 6.1.2 before wiring executors or inspector forms.
+ * Compatibility re-exports — direct property lookup uses the same `pro/byzpid`
+ * contract as listing-based enrichment (provider ID only; no address lookup in V1).
+ *
+ * @see Story 6.1.2 — Confirm private-Zillow property detail contract
  */
 
-export const propertyLookupToolKey =
-  "rapidapi.zillow.loadPropertyDetails@1" as const;
+export {
+  propertyDetailEndpointPath,
+  propertyDetailProviderIdSchema,
+  propertyDetailRequestSchema,
+  propertyDetailResponseSchema,
+  propertyDetailToolKey,
+  propertyDetailsPayloadSchema,
+  type PropertyDetailProviderId,
+  type PropertyDetailRequest,
+  type PropertyDetailResponse,
+  type PropertyDetailsPayload,
+} from "@/contracts/providers/zillow/property-detail";
 
-export const propertyLookupByProviderIdRequestSchema = z
-  .object({
-    lookupMode: z.literal("providerId"),
-    zpid: zillowProviderIdSchema,
-  })
-  .loose();
+/** @deprecated Use `propertyDetailToolKey`. */
+export { propertyDetailToolKey as propertyLookupToolKey } from "@/contracts/providers/zillow/property-detail";
 
-export const propertyLookupByAddressRequestSchema = z
-  .object({
-    lookupMode: z.literal("address"),
-    address: zillowAddressFragmentSchema,
-  })
-  .loose();
+/** @deprecated Use `propertyDetailRequestSchema`. */
+export { propertyDetailRequestSchema as propertyLookupRequestSchema } from "@/contracts/providers/zillow/property-detail";
 
-export const propertyLookupRequestSchema = z.discriminatedUnion("lookupMode", [
-  propertyLookupByProviderIdRequestSchema,
-  propertyLookupByAddressRequestSchema,
-]);
+/** @deprecated Use `propertyDetailResponseSchema`. */
+export { propertyDetailResponseSchema as propertyLookupResponseSchema } from "@/contracts/providers/zillow/property-detail";
 
-export type PropertyLookupRequest = z.infer<typeof propertyLookupRequestSchema>;
+/** @deprecated Use `PropertyDetailRequest`. */
+export type { PropertyDetailRequest as PropertyLookupRequest } from "@/contracts/providers/zillow/property-detail";
 
-export const propertyLookupResponseSchema = z
-  .object({
-    property: propertyDetailItemSchema,
-  })
-  .loose();
-
-export type PropertyLookupResponse = z.infer<
-  typeof propertyLookupResponseSchema
->;
+/** @deprecated Use `PropertyDetailResponse`. */
+export type { PropertyDetailResponse as PropertyLookupResponse } from "@/contracts/providers/zillow/property-detail";

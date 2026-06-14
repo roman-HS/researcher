@@ -1,7 +1,7 @@
 /**
  * Raw provider API response schemas (untrusted; normalize into `domain` DTOs).
  *
- * Listing search confirmed in Story 6.1.1; other Zillow tools remain placeholders.
+ * Listing search confirmed in Story 6.1.1; property detail in Story 6.1.2.
  */
 
 export {
@@ -11,6 +11,7 @@ export {
   listingSearchPropertySchema,
   listingSearchResponseSchema,
   propertyDetailItemSchema,
+  propertyDetailsPayloadSchema,
   propertyDetailResponseSchema,
   propertyLookupResponseSchema,
   rentEstimatePayloadSchema,
@@ -21,6 +22,7 @@ export {
   type ListingSearchProperty,
   type ListingSearchResponse,
   type PropertyDetailItem,
+  type PropertyDetailsPayload,
   type PropertyDetailResponse,
   type PropertyLookupResponse,
   type RentEstimatePayload,
