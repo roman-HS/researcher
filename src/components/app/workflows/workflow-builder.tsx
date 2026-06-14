@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
+import { WorkflowBuilderDuplicateMenu } from "@/components/app/workflows/workflow-builder-duplicate-menu";
 import { WorkflowBuilderPublishButton } from "@/components/app/workflows/workflow-builder-publish-button";
 import { WorkflowBuilderSaveDraftButton } from "@/components/app/workflows/workflow-builder-save-draft-button";
 import { WorkflowBuilderSidebar } from "@/components/app/workflows/workflow-builder-sidebar";
@@ -244,6 +245,11 @@ function WorkflowBuilderShell({
             isSaving={isSaving}
             onPublishValidationErrors={handlePublishValidationErrors}
             onPublishSuccess={onPublishSuccess}
+          />
+          <WorkflowBuilderDuplicateMenu
+            workflowId={workflowId}
+            workflowName={workflowName}
+            isSaving={isSaving}
           />
           <WorkflowBuilderBackButton />
         </div>
