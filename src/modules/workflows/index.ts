@@ -14,6 +14,10 @@ export {
   type ListWorkflowsResult,
 } from "./list-workflows";
 export {
+  updateWorkflowDraft,
+  type UpdateWorkflowDraftContext,
+} from "./update-draft-workflow";
+export {
   WorkflowDefinitionValidationError,
   WorkflowLifecycleError,
   isWorkflowDefinitionValidationError,
