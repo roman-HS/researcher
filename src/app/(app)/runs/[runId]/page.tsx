@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { RunDetailHeader } from "@/components/app/runs/run-detail-header";
+import { RunStepTimeline } from "@/components/app/runs/run-step-timeline";
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
 import type { GetRunDetailResponse } from "@/contracts/runs/responses";
 import { isAppError } from "@/lib/api/errors";
@@ -9,6 +10,7 @@ import { requireCurrentWorkspace } from "@/modules/workspace";
 
 /**
  * @see Story 8.2.2 — Build run detail header
+ * @see Story 8.2.3 — Build run step timeline
  */
 
 type RunDetailPageProps = {
@@ -19,7 +21,7 @@ async function loadRunDetail(runId: string): Promise<GetRunDetailResponse> {
   const workspace = await requireCurrentWorkspace();
 
   try {
-    return await getRun(runId, { includeStepDetails: false }, { workspace });
+    return await getRun(runId, { includeStepDetails: true }, { workspace });
   } catch (error) {
     if (isAppError(error) && error.code === "not_found") {
       notFound();
@@ -53,6 +55,7 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
         error={run.error}
         counts={run.counts}
       />
+      <RunStepTimeline steps={run.steps} />
     </div>
   );
 }
