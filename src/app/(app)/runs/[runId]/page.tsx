@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { RunDetailHeader } from "@/components/app/runs/run-detail-header";
-import { RunStepTimeline } from "@/components/app/runs/run-step-timeline";
+import { RunDetailView } from "@/components/app/runs/run-detail-view";
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
 import type { GetRunDetailResponse } from "@/contracts/runs/responses";
 import { isAppError } from "@/lib/api/errors";
@@ -11,6 +10,7 @@ import { requireCurrentWorkspace } from "@/modules/workspace";
 /**
  * @see Story 8.2.2 — Build run detail header
  * @see Story 8.2.3 — Build run step timeline
+ * @see Story 8.2.4 — Add run status polling
  */
 
 type RunDetailPageProps = {
@@ -43,19 +43,7 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto p-4 md:p-6">
-      <RunDetailHeader
-        status={run.status}
-        workflowId={run.workflowId}
-        workflowName={run.workflowName}
-        workflowVersionNumber={run.workflowVersionNumber}
-        startedAt={run.startedAt}
-        completedAt={run.completedAt}
-        runtimeInputs={run.runtimeInputs}
-        inputValues={run.inputValues}
-        error={run.error}
-        counts={run.counts}
-      />
-      <RunStepTimeline steps={run.steps} />
+      <RunDetailView runId={parsedRunId.data} initialRun={run} />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { RunStepTimelineRow } from "@/components/app/runs/run-step-timeline-row";
 import type { RunDetailStepTimelineItem } from "@/contracts/runs/responses";
 

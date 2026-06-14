@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircleIcon } from "lucide-react";
+import { AlertCircleIcon, Loader2Icon } from "lucide-react";
 
 import { RunStatusBadge } from "@/components/app/runs/run-status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -16,7 +16,10 @@ import { cn } from "@/lib/utils";
 
 /**
  * @see Story 8.2.2 — Build run detail header
+ * @see Story 8.2.4 — Add run status polling
  */
+
+export type RunDetailPollState = "refreshing" | "error" | null;
 
 export type RunDetailHeaderProps = {
   status: WorkflowRunStatus;
@@ -29,6 +32,7 @@ export type RunDetailHeaderProps = {
   inputValues: ToolExecutorRuntimeInputValues;
   error: RunDetailUserFacingError | null;
   counts: RunDetailCounts;
+  pollState?: RunDetailPollState;
 };
 
 function formatNullableDateTime(value: string | null): string {
@@ -88,6 +92,31 @@ function RunDetailErrorAlert({
   );
 }
 
+function RunDetailPollIndicator({
+  pollState,
+}: {
+  pollState: RunDetailPollState;
+}) {
+  if (pollState === "refreshing") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Loader2Icon className="size-3.5 animate-spin" />
+        Updating…
+      </span>
+    );
+  }
+
+  if (pollState === "error") {
+    return (
+      <span className="text-xs text-amber-700 dark:text-amber-400">
+        Update failed — retrying
+      </span>
+    );
+  }
+
+  return null;
+}
+
 export function RunDetailHeader({
   status,
   workflowId,
@@ -99,6 +128,7 @@ export function RunDetailHeader({
   inputValues,
   error,
   counts,
+  pollState = null,
 }: RunDetailHeaderProps) {
   const inputSummaryItems = buildRuntimeInputSummaryItems(
     runtimeInputs,
@@ -126,6 +156,7 @@ export function RunDetailHeader({
             {workflowName}
           </h1>
           <RunStatusBadge status={status} />
+          <RunDetailPollIndicator pollState={pollState} />
         </div>
         <p className="text-sm text-muted-foreground">
           Published version v{workflowVersionNumber}

@@ -40,6 +40,7 @@ export {
   type ListRunsQuery,
   type RunIdempotencyKey,
 } from "@/contracts/runs/requests";
+export { DEFAULT_RUN_POLL_AFTER_MS } from "@/contracts/runs/polling";
 export {
   createRunResponseSchema,
   getRunDetailResponseSchema,

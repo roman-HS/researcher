@@ -10,6 +10,7 @@ import {
  * Browser-side fetch helper for `/api/v1/*` route handlers.
  *
  * @see Story 8.1.1 — Build workflow run form
+ * @see Story 8.2.4 — Add run status polling
  */
 
 export type ApiClientResult<T> =
@@ -21,23 +22,10 @@ const FALLBACK_ERROR: ApiError = {
   message: "Request failed.",
 };
 
-export async function apiClientPost<T>(
-  path: string,
-  body: unknown,
-  options: {
-    headers?: Record<string, string>;
-    schema?: ZodType<T>;
-  } = {},
+async function parseApiResponse<T>(
+  response: Response,
+  schema?: ZodType<T>,
 ): Promise<ApiClientResult<T>> {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    body: JSON.stringify(body),
-  });
-
   let json: unknown;
 
   try {
@@ -61,8 +49,8 @@ export async function apiClientPost<T>(
     return { ok: false, error: FALLBACK_ERROR };
   }
 
-  if (options.schema) {
-    const dataResult = options.schema.safeParse(envelope.data.data);
+  if (schema) {
+    const dataResult = schema.safeParse(envelope.data.data);
 
     if (!dataResult.success) {
       return { ok: false, error: FALLBACK_ERROR };
@@ -72,6 +60,42 @@ export async function apiClientPost<T>(
   }
 
   return { ok: true, data: envelope.data.data as T };
+}
+
+export async function apiClientGet<T>(
+  path: string,
+  options: {
+    schema?: ZodType<T>;
+  } = {},
+): Promise<ApiClientResult<T>> {
+  const response = await fetch(path, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  return parseApiResponse(response, options.schema);
+}
+
+export async function apiClientPost<T>(
+  path: string,
+  body: unknown,
+  options: {
+    headers?: Record<string, string>;
+    schema?: ZodType<T>;
+  } = {},
+): Promise<ApiClientResult<T>> {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+    body: JSON.stringify(body),
+  });
+
+  return parseApiResponse(response, options.schema);
 }
 
 export function mapApiValidationIssuesToFieldErrors(
