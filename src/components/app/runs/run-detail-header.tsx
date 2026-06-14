@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircleIcon, Loader2Icon } from "lucide-react";
+import { AlertCircleIcon, AlertTriangleIcon, Loader2Icon } from "lucide-react";
 
 import { RunStatusBadge } from "@/components/app/runs/run-status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,11 +12,18 @@ import type {
 import type { WorkflowRuntimeInputs } from "@/contracts/workflows/runtime-inputs";
 import { formatDateTime } from "@/lib/format/datetime";
 import { buildRuntimeInputSummaryItems } from "@/lib/runs/format-runtime-input-display-value";
+import {
+  buildPartialRunBannerDescription,
+  formatSuccessfulPropertyCountLabel,
+  getSuccessfulPropertyCount,
+  shouldShowPartialRunBanner,
+} from "@/lib/runs/partial-run-visibility";
 import { cn } from "@/lib/utils";
 
 /**
  * @see Story 8.2.2 — Build run detail header
  * @see Story 8.2.4 — Add run status polling
+ * @see Story 8.3.5 — Add partial and failed item visibility
  */
 
 export type RunDetailPollState = "refreshing" | "error" | null;
@@ -163,10 +170,25 @@ export function RunDetailHeader({
         </p>
       </div>
 
+      {shouldShowPartialRunBanner(status) ? (
+        <Alert className="border-amber-500/40 bg-amber-500/5">
+          <AlertTriangleIcon className="text-amber-800 dark:text-amber-300" />
+          <AlertTitle className="text-amber-900 dark:text-amber-200">
+            Partial run
+          </AlertTitle>
+          <AlertDescription className="text-amber-950 dark:text-amber-100">
+            {buildPartialRunBannerDescription(counts)}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
       {error ? <RunDetailErrorAlert status={status} error={error} /> : null}
 
       <dl className="grid gap-4 sm:grid-cols-3">
-        <RunDetailCount label="Properties" value={counts.propertyCount} />
+        <RunDetailCount
+          label={formatSuccessfulPropertyCountLabel(counts)}
+          value={getSuccessfulPropertyCount(counts)}
+        />
         <RunDetailCount
           label="Failed properties"
           value={counts.failedPropertyCount}

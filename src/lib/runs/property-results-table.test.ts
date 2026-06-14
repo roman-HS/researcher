@@ -6,6 +6,8 @@ import {
   DEFAULT_PROPERTY_RESULT_SORT,
   filterPropertyResults,
   formatPropertyAddressDisplay,
+  formatPropertyResultFilterLabel,
+  getPropertyResultFilterCounts,
   sortPropertyResults,
 } from "./property-results-table";
 
@@ -93,6 +95,36 @@ describe("filterPropertyResults", () => {
     expect(filterPropertyResults(results, "failed").map((row) => row.propertyKey)).toEqual([
       "failed",
     ]);
+  });
+});
+
+describe("property result filter labels", () => {
+  it("includes counts in filter labels", () => {
+    const results = [
+      createPropertyResult({ propertyKey: "clean" }),
+      createPropertyResult({
+        propertyKey: "warned",
+        warnings: ["Low confidence rent estimate"],
+      }),
+      createPropertyResult({
+        propertyKey: "failed",
+        errors: [
+          {
+            code: "provider_error",
+            userMessage: "Rent estimate failed",
+            propertyKey: "failed",
+          },
+        ],
+      }),
+    ];
+    const counts = getPropertyResultFilterCounts(results);
+
+    expect(counts).toEqual({
+      all: 3,
+      warnings: 1,
+      failed: 1,
+    });
+    expect(formatPropertyResultFilterLabel("failed", counts)).toBe("Failed (1)");
   });
 });
 

@@ -24,7 +24,11 @@ import {
 } from "@/components/ui/table";
 import type { WorkflowRunStatus } from "@/contracts/runs/lifecycle";
 import { isTerminalRunStatus } from "@/contracts/runs/lifecycle";
-import type { RunDetailAreaResult, RunDetailPropertyResult } from "@/contracts/runs/responses";
+import type {
+  RunDetailAreaResult,
+  RunDetailCounts,
+  RunDetailPropertyResult,
+} from "@/contracts/runs/responses";
 import {
   formatNullableCents,
   formatNullableCurrencyAmount,
@@ -38,25 +42,37 @@ import {
   DEFAULT_PROPERTY_RESULT_SORT,
   filterPropertyResults,
   formatPropertyAddressDisplay,
+  formatPropertyResultFilterLabel,
   getEstimatedMonthlyRent,
+  getPropertyResultFilterCounts,
   sortPropertyResults,
   type PropertyResultFilter,
   type PropertyResultSortDirection,
   type PropertyResultSortKey,
 } from "@/lib/runs/property-results-table";
+import {
+  buildPropertyResultsCompletenessDescription,
+  formatFailedPropertyPrimaryError,
+} from "@/lib/runs/partial-run-visibility";
 import { cn } from "@/lib/utils";
 
 /**
  * @see Story 8.3.1 — Build property results table
  * @see Story 8.3.2 — Build property detail drawer
  * @see Story 8.3.3 — Build area results panel
+ * @see Story 8.3.5 — Add partial and failed item visibility
  */
 
 type RunPropertyResultsTableProps = {
   propertyResults: RunDetailPropertyResult[];
   runStatus: WorkflowRunStatus;
+  counts: RunDetailCounts;
   selectedAreaFilter?: RunDetailAreaResult | null;
   onClearAreaFilter?: () => void;
+  filter?: PropertyResultFilter;
+  onFilterChange?: (filter: PropertyResultFilter) => void;
+  selectedPropertyResultId?: string | null;
+  onSelectedPropertyResultIdChange?: (propertyResultId: string | null) => void;
 };
 
 type SortableColumn = {
@@ -86,6 +102,30 @@ const FILTER_LABELS: Record<PropertyResultFilter, string> = {
   warnings: "Has warnings",
   failed: "Failed",
 };
+
+function PropertyResultAddressCell({
+  propertyResult,
+}: {
+  propertyResult: RunDetailPropertyResult;
+}) {
+  const address = formatPropertyAddressDisplay(
+    propertyResult.addressSummary,
+    propertyResult.propertyKey,
+  );
+  const primaryError = formatFailedPropertyPrimaryError(propertyResult.errors);
+
+  return (
+    <div className="space-y-0.5">
+      <p className="font-medium leading-snug">{address.primary}</p>
+      {address.secondary ? (
+        <p className="text-sm text-muted-foreground">{address.secondary}</p>
+      ) : null}
+      {primaryError ? (
+        <p className="line-clamp-2 text-sm text-destructive">{primaryError}</p>
+      ) : null}
+    </div>
+  );
+}
 
 function formatNullableScore(score: number | null): string {
   if (score === null) {
@@ -172,19 +212,37 @@ function SortableHeader({
 export function RunPropertyResultsTable({
   propertyResults,
   runStatus,
+  counts,
   selectedAreaFilter = null,
   onClearAreaFilter,
+  filter: controlledFilter,
+  onFilterChange,
+  selectedPropertyResultId: controlledSelectedPropertyResultId,
+  onSelectedPropertyResultIdChange,
 }: RunPropertyResultsTableProps) {
-  const [filter, setFilter] = useState<PropertyResultFilter>("all");
+  const [internalFilter, setInternalFilter] = useState<PropertyResultFilter>("all");
+  const filter = controlledFilter ?? internalFilter;
+  const setFilter = onFilterChange ?? setInternalFilter;
   const [sortKey, setSortKey] = useState<PropertyResultSortKey>(
     DEFAULT_PROPERTY_RESULT_SORT.key,
   );
   const [sortDirection, setSortDirection] =
     useState<PropertyResultSortDirection>(DEFAULT_PROPERTY_RESULT_SORT.direction);
-  const [selectedPropertyResultId, setSelectedPropertyResultId] = useState<
-    string | null
-  >(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [internalSelectedPropertyResultId, setInternalSelectedPropertyResultId] =
+    useState<string | null>(null);
+  const selectedPropertyResultId =
+    controlledSelectedPropertyResultId ?? internalSelectedPropertyResultId;
+  const setSelectedPropertyResultId =
+    onSelectedPropertyResultIdChange ?? setInternalSelectedPropertyResultId;
+
+  const filterCounts = useMemo(
+    () => getPropertyResultFilterCounts(propertyResults),
+    [propertyResults],
+  );
+  const completenessDescription = useMemo(
+    () => buildPropertyResultsCompletenessDescription(runStatus, counts),
+    [counts, runStatus],
+  );
 
   const visibleRows = useMemo(() => {
     const filtered = filterPropertyResults(propertyResults, filter);
@@ -208,6 +266,8 @@ export function RunPropertyResultsTable({
     );
   }, [propertyResults, selectedPropertyResultId]);
 
+  const isDrawerOpen = selectedPropertyResult !== null;
+
   function handleSort(nextSortKey: PropertyResultSortKey) {
     if (nextSortKey === sortKey) {
       setSortDirection((currentDirection) =>
@@ -224,12 +284,9 @@ export function RunPropertyResultsTable({
 
   function handleRowClick(propertyResult: RunDetailPropertyResult) {
     setSelectedPropertyResultId(propertyResult.propertyResultId);
-    setIsDrawerOpen(true);
   }
 
   function handleDrawerOpenChange(open: boolean) {
-    setIsDrawerOpen(open);
-
     if (!open) {
       setSelectedPropertyResultId(null);
     }
@@ -245,6 +302,7 @@ export function RunPropertyResultsTable({
           <h2 className="text-sm font-medium">Property results</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Compare analyzed properties from this run.
+            {completenessDescription ? ` ${completenessDescription}` : ""}
           </p>
         </div>
 
@@ -269,7 +327,7 @@ export function RunPropertyResultsTable({
                 {(Object.keys(FILTER_LABELS) as PropertyResultFilter[]).map(
                   (filterKey) => (
                     <SelectItem key={filterKey} value={filterKey}>
-                      {FILTER_LABELS[filterKey]}
+                      {formatPropertyResultFilterLabel(filterKey, filterCounts)}
                     </SelectItem>
                   ),
                 )}
@@ -346,10 +404,6 @@ export function RunPropertyResultsTable({
             </TableHeader>
             <TableBody>
               {visibleRows.map((propertyResult) => {
-                const address = formatPropertyAddressDisplay(
-                  propertyResult.addressSummary,
-                  propertyResult.propertyKey,
-                );
                 const estimatedRent = getEstimatedMonthlyRent(propertyResult);
 
                 return (
@@ -361,16 +415,7 @@ export function RunPropertyResultsTable({
                     }}
                   >
                     <TableCell className="min-w-48 max-w-64">
-                      <div className="space-y-0.5">
-                        <p className="font-medium leading-snug">
-                          {address.primary}
-                        </p>
-                        {address.secondary ? (
-                          <p className="text-sm text-muted-foreground">
-                            {address.secondary}
-                          </p>
-                        ) : null}
-                      </div>
+                      <PropertyResultAddressCell propertyResult={propertyResult} />
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
                       {formatNullableCents(propertyResult.listPriceCents)}

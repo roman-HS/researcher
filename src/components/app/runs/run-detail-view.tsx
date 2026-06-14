@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { RunAreaResultsPanel } from "@/components/app/runs/run-area-results-panel";
 import { RunDetailHeader } from "@/components/app/runs/run-detail-header";
+import { RunFailedItemsSection } from "@/components/app/runs/run-failed-items-section";
 import { RunPropertyResultsTable } from "@/components/app/runs/run-property-results-table";
 import { RunStepTimeline } from "@/components/app/runs/run-step-timeline";
 import { RunWorkflowSummaryPanel } from "@/components/app/runs/run-workflow-summary-panel";
@@ -14,6 +15,7 @@ import {
   type RunDetailAreaResult,
 } from "@/contracts/runs/responses";
 import { apiClientGet } from "@/lib/api/browser-client";
+import type { PropertyResultFilter } from "@/lib/runs/property-results-table";
 
 /**
  * @see Story 8.2.4 — Add run status polling
@@ -21,6 +23,7 @@ import { apiClientGet } from "@/lib/api/browser-client";
  * @see Story 8.3.2 — Build property detail drawer
  * @see Story 8.3.3 — Build area results panel
  * @see Story 8.3.4 — Build final summary panel
+ * @see Story 8.3.5 — Add partial and failed item visibility
  */
 
 type RunDetailViewProps = {
@@ -45,6 +48,11 @@ export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
   const [selectedAreaResultId, setSelectedAreaResultId] = useState<string | null>(
     null,
   );
+  const [propertyResultFilter, setPropertyResultFilter] =
+    useState<PropertyResultFilter>("all");
+  const [selectedPropertyResultId, setSelectedPropertyResultId] = useState<
+    string | null
+  >(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pollError, setPollError] = useState(false);
   const inFlightRef = useRef(false);
@@ -169,9 +177,24 @@ export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
             : null
         }
       />
+      <RunFailedItemsSection
+        counts={run.counts}
+        propertyResults={run.propertyResults}
+        onShowFailedInTable={() => {
+          setPropertyResultFilter("failed");
+        }}
+        onSelectPropertyResult={(propertyResultId) => {
+          setSelectedPropertyResultId(propertyResultId);
+        }}
+      />
       <RunPropertyResultsTable
         propertyResults={run.propertyResults}
         runStatus={run.status}
+        counts={run.counts}
+        filter={propertyResultFilter}
+        onFilterChange={setPropertyResultFilter}
+        selectedPropertyResultId={selectedPropertyResultId}
+        onSelectedPropertyResultIdChange={setSelectedPropertyResultId}
         selectedAreaFilter={selectedAreaFilter}
         onClearAreaFilter={() => {
           setSelectedAreaResultId(null);

@@ -75,6 +75,40 @@ export function getEstimatedMonthlyRent(
   );
 }
 
+export type PropertyResultFilterCounts = Record<PropertyResultFilter, number>;
+
+export function getPropertyResultFilterCounts(
+  propertyResults: readonly RunDetailPropertyResult[],
+): PropertyResultFilterCounts {
+  return {
+    all: propertyResults.length,
+    warnings: propertyResults.filter(
+      (propertyResult) => propertyResult.warnings.length > 0,
+    ).length,
+    failed: propertyResults.filter(
+      (propertyResult) => propertyResult.errors.length > 0,
+    ).length,
+  };
+}
+
+export function formatPropertyResultFilterLabel(
+  filter: PropertyResultFilter,
+  counts: PropertyResultFilterCounts,
+): string {
+  switch (filter) {
+    case "all":
+      return counts.all === 1
+        ? "All properties (1)"
+        : `All properties (${counts.all})`;
+    case "warnings":
+      return counts.warnings === 1
+        ? "Has warnings (1)"
+        : `Has warnings (${counts.warnings})`;
+    case "failed":
+      return counts.failed === 1 ? "Failed (1)" : `Failed (${counts.failed})`;
+  }
+}
+
 export function filterPropertyResults(
   propertyResults: readonly RunDetailPropertyResult[],
   filter: PropertyResultFilter,
