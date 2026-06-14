@@ -2,6 +2,8 @@ export const RUNS_MODULE_ROOT = "runs" as const;
 
 export {
   createRun,
+  DEFAULT_RUN_POLL_AFTER_MS,
+  toCreateRunResponse,
   type CreateRunContext,
   type CreateRunOptions,
   type CreateRunResult,

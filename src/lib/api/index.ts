@@ -1,4 +1,5 @@
 export { AppError, isAppError, type AppErrorOptions } from "@/lib/api/errors";
+export { parseIdempotencyKeyHeader } from "@/lib/api/idempotency";
 export {
   createApiRoute,
   type ApiRouteAuth,

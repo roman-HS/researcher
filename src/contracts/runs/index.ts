@@ -35,6 +35,10 @@ export {
   type RunIdempotencyKey,
 } from "@/contracts/runs/requests";
 export {
+  createRunResponseSchema,
+  type CreateRunResponse,
+} from "@/contracts/runs/responses";
+export {
   parseExecutionTransportStartPayload,
   type ExecutionTransport,
   type ExecutionTransportStartPayload,

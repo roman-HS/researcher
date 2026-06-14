@@ -6,6 +6,7 @@ import type { ExecutionTransport } from "@/contracts/runs/execution-transport";
 import type { RunErrorJson } from "@/contracts/runs/run-error";
 import type { WorkflowRunStatus } from "@/contracts/runs/lifecycle";
 import type { CreateRunRequest } from "@/contracts/runs/requests";
+import type { CreateRunResponse } from "@/contracts/runs/responses";
 import { getDb, type DatabaseClient } from "@/db";
 import { runIdempotencyKeys, workflowRuns } from "@/db/schema/run";
 import { workflowVersions, workflows } from "@/db/schema/workflow";
@@ -47,6 +48,17 @@ export type CreateRunResult = {
   workflowVersionId: string;
   replayed: boolean;
 };
+
+export const DEFAULT_RUN_POLL_AFTER_MS = 2000;
+
+export function toCreateRunResponse(result: CreateRunResult): CreateRunResponse {
+  return {
+    runId: result.runId,
+    status: result.status,
+    workflowVersionId: result.workflowVersionId,
+    pollAfterMs: DEFAULT_RUN_POLL_AFTER_MS,
+  };
+}
 
 type PersistedRunRow = typeof workflowRuns.$inferSelect;
 
