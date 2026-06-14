@@ -2971,7 +2971,7 @@ Create the run model, execution engine, status lifecycle, idempotent run creatio
 
 1. How long should idempotency keys be retained?
 
-## HERE ------ Epic 7.2 — Execution planning and lifecycle
+## Epic 7.2 — Execution planning and lifecycle
 
 ### Story 7.2.1 — Implement published workflow compiler
 
@@ -3116,7 +3116,7 @@ Create the run model, execution engine, status lifecycle, idempotent run creatio
 
 1. Does the execution transport require full context serialization between steps?
 
-## Epic 7.3 — Execution transport and run creation
+## HERE ------ Epic 7.3 — Execution transport and run creation
 
 ### Story 7.3.1 — Define ExecutionTransport interface
 
