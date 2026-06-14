@@ -97,6 +97,7 @@ export {
   type WorkflowDefinitionValidationSeverity,
 } from "./validation";
 export {
+  archiveWorkflowParamsSchema,
   createWorkflowRequestSchema,
   duplicateWorkflowParamsSchema,
   duplicateWorkflowRequestSchema,
@@ -108,6 +109,7 @@ export {
   updateWorkflowDraftRequestSchema,
   publishWorkflowParamsSchema,
   workflowNameSchema,
+  type ArchiveWorkflowParams,
   type CreateWorkflowRequest,
   type DuplicateWorkflowParams,
   type DuplicateWorkflowRequest,
@@ -121,6 +123,7 @@ export {
   type WorkflowName,
 } from "./requests";
 export {
+  archiveWorkflowResponseSchema,
   createWorkflowResponseSchema,
   duplicateWorkflowResponseSchema,
   getWorkflowResponseSchema,
@@ -133,6 +136,7 @@ export {
   workflowDraftVersionSummarySchema,
   workflowListItemSchema,
   workflowPublishedVersionSummarySchema,
+  type ArchiveWorkflowResponse,
   type CreateWorkflowResponse,
   type DuplicateWorkflowResponse,
   type GetWorkflowResponse,

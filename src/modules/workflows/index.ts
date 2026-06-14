@@ -21,6 +21,10 @@ export {
   type UpdateWorkflowDraftContext,
 } from "./update-draft-workflow";
 export {
+  archiveWorkflow,
+  type ArchiveWorkflowContext,
+} from "./archive-workflow";
+export {
   duplicateWorkflow,
   type DuplicateWorkflowContext,
 } from "./duplicate-workflow";

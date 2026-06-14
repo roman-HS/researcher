@@ -15,6 +15,7 @@ import { workflowNameSchema } from "./requests";
  * @see Story 4.3.4 — Implement update draft workflow service
  * @see Story 4.3.5 — Implement publish workflow service
  * @see Story 4.3.6 — Implement duplicate workflow service
+ * @see Story 4.3.7 — Implement archive workflow service
  */
 
 import { workflowDefinitionValidationIssueSchema } from "./validation";
@@ -138,3 +139,14 @@ export type PublishWorkflowResponse = z.infer<
 export const duplicateWorkflowResponseSchema = createWorkflowResponseSchema;
 
 export type DuplicateWorkflowResponse = CreateWorkflowResponse;
+
+export const archiveWorkflowResponseSchema = z.object({
+  workflowId: domainEntityIdSchema,
+  name: workflowNameSchema,
+  description: z.string().nullable(),
+  status: z.literal("archived"),
+  archivedAt: isoDateTimeSchema,
+  updatedAt: isoDateTimeSchema,
+});
+
+export type ArchiveWorkflowResponse = z.infer<typeof archiveWorkflowResponseSchema>;

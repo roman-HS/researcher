@@ -98,3 +98,7 @@ export type DuplicateWorkflowRequest = z.infer<
 export const duplicateWorkflowParamsSchema = getWorkflowParamsSchema;
 
 export type DuplicateWorkflowParams = GetWorkflowParams;
+
+export const archiveWorkflowParamsSchema = getWorkflowParamsSchema;
+
+export type ArchiveWorkflowParams = GetWorkflowParams;
