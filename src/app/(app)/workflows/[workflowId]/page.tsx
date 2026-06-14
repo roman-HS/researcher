@@ -45,11 +45,17 @@ export default async function WorkflowBuilderPage({
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
       <WorkflowBuilder
-        key={workflow.workflowId}
+        key={`${workflow.workflowId}:${workflow.draftVersion.versionId}`}
         workflowId={workflow.workflowId}
         workflowName={workflow.name}
         workflowDescription={workflow.description}
         initialDefinition={draftDefinition}
+        initialDraftVersion={{
+          versionId: workflow.draftVersion.versionId,
+          versionNumber: workflow.draftVersion.versionNumber,
+          updatedAt: workflow.draftVersion.updatedAt,
+        }}
+        initialPublishedVersion={workflow.publishedVersion}
         initialToolCatalog={initialToolCatalog}
       />
     </div>

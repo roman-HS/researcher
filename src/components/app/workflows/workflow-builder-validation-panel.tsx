@@ -30,15 +30,17 @@ import { cn } from "@/lib/utils";
 type WorkflowBuilderValidationPanelProps = {
   validation: WorkflowBuilderValidationState["validation"];
   saveErrors?: readonly WorkflowDefinitionValidationIssue[];
+  publishErrors?: readonly WorkflowDefinitionValidationIssue[];
 };
 
 function useDisplayValidation(
   validation: WorkflowBuilderValidationState["validation"],
   saveErrors: readonly WorkflowDefinitionValidationIssue[] | undefined,
+  publishErrors: readonly WorkflowDefinitionValidationIssue[] | undefined,
 ) {
   const mergedErrors = mergeValidationIssues(
-    validation.errors,
-    saveErrors ?? [],
+    mergeValidationIssues(validation.errors, saveErrors ?? []),
+    publishErrors ?? [],
   );
   const issueCount = mergedErrors.length + validation.warnings.length;
 
@@ -142,11 +144,16 @@ function ValidationIssueGroup({
 export function WorkflowBuilderValidationPanel({
   validation,
   saveErrors = [],
+  publishErrors = [],
 }: WorkflowBuilderValidationPanelProps) {
   const focusNodeFromValidation = useWorkflowBuilderStore(
     (state) => state.focusNodeFromValidation,
   );
-  const displayValidation = useDisplayValidation(validation, saveErrors);
+  const displayValidation = useDisplayValidation(
+    validation,
+    saveErrors,
+    publishErrors,
+  );
   const issueCount = displayValidation.issueCount;
   const [expanded, setExpanded] = useState(issueCount > 0);
   const [highlightedIssueKey, setHighlightedIssueKey] = useState<string | null>(

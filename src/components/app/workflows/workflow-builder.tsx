@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
+import { WorkflowBuilderPublishButton } from "@/components/app/workflows/workflow-builder-publish-button";
 import { WorkflowBuilderSaveDraftButton } from "@/components/app/workflows/workflow-builder-save-draft-button";
 import { WorkflowBuilderSidebar } from "@/components/app/workflows/workflow-builder-sidebar";
 import { WorkflowBuilderValidationPanel } from "@/components/app/workflows/workflow-builder-validation-panel";
 import { WorkflowBuilderValidationStatus } from "@/components/app/workflows/workflow-builder-validation-status";
+import { WorkflowVersionBadges } from "@/components/app/workflows/workflow-version-badges";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -21,10 +23,15 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ListToolsResponse } from "@/contracts/tools/responses";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
+import type {
+  WorkflowDraftVersionSummary,
+  WorkflowPublishedVersionSummary,
+} from "@/contracts/workflows/responses";
 import type { WorkflowDefinitionValidationIssue } from "@/contracts/workflows/validation";
 import { buildToolMetadataByKey } from "@/lib/workflows/builder-tool-metadata";
 import { definitionsEqual } from "@/lib/workflows/definition-equality";
 import { useWorkflowBuilderValidation } from "@/lib/workflows/use-workflow-builder-validation";
+import type { PublishWorkflowActionResult } from "@/modules/workflows/actions";
 import {
   WorkflowBuilderStoreProvider,
   useWorkflowBuilderStore,
@@ -35,7 +42,21 @@ type WorkflowBuilderProps = {
   workflowName: string;
   workflowDescription: string | null;
   initialDefinition: WorkflowDefinition;
+  initialDraftVersion: WorkflowDraftVersionSummary;
+  initialPublishedVersion: WorkflowPublishedVersionSummary | null;
   initialToolCatalog: ListToolsResponse;
+};
+
+type BuilderVersionState = {
+  draftVersionId: string;
+  draftVersion: WorkflowDraftVersionSummary;
+  publishedVersion: WorkflowPublishedVersionSummary | null;
+  definition: WorkflowDefinition;
+};
+
+type ServerValidationErrorState = {
+  definitionAtFailure: WorkflowDefinition;
+  errors: WorkflowDefinitionValidationIssue[];
 };
 
 function WorkflowBuilderBackButton() {
@@ -84,38 +105,57 @@ function WorkflowBuilderBackButton() {
   );
 }
 
-type SaveValidationErrorState = {
-  definitionAtFailure: WorkflowDefinition;
-  errors: WorkflowDefinitionValidationIssue[];
-};
+function useServerValidationErrors(
+  definition: WorkflowDefinition,
+  validationState: ServerValidationErrorState | null,
+) {
+  return useMemo(() => {
+    if (
+      !validationState ||
+      !definitionsEqual(definition, validationState.definitionAtFailure)
+    ) {
+      return [];
+    }
+
+    return validationState.errors;
+  }, [definition, validationState]);
+}
 
 function WorkflowBuilderShell({
   workflowId,
   workflowName,
   workflowDescription,
   initialToolCatalog,
-}: Omit<WorkflowBuilderProps, "initialDefinition">) {
+  versionState,
+  onPublishSuccess,
+}: Omit<WorkflowBuilderProps, "initialDefinition" | "initialDraftVersion" | "initialPublishedVersion"> & {
+  versionState: BuilderVersionState;
+  onPublishSuccess: (
+    result: Extract<PublishWorkflowActionResult, { ok: true }>,
+  ) => void;
+}) {
   const definition = useWorkflowBuilderStore((state) => state.definition);
   const isDirty = useWorkflowBuilderStore((state) => state.isDirty);
   const { validation, nodeValidationStatusByNodeId, eligibility } =
     useWorkflowBuilderValidation();
+  const [isSaving, setIsSaving] = useState(false);
   const [saveValidationState, setSaveValidationState] =
-    useState<SaveValidationErrorState | null>(null);
+    useState<ServerValidationErrorState | null>(null);
+  const [publishValidationState, setPublishValidationState] =
+    useState<ServerValidationErrorState | null>(null);
   const toolMetadataByKey = useMemo(
     () => buildToolMetadataByKey(initialToolCatalog),
     [initialToolCatalog],
   );
 
-  const saveValidationErrors = useMemo(() => {
-    if (
-      !saveValidationState ||
-      !definitionsEqual(definition, saveValidationState.definitionAtFailure)
-    ) {
-      return [];
-    }
-
-    return saveValidationState.errors;
-  }, [definition, saveValidationState]);
+  const saveValidationErrors = useServerValidationErrors(
+    definition,
+    saveValidationState,
+  );
+  const publishValidationErrors = useServerValidationErrors(
+    definition,
+    publishValidationState,
+  );
 
   function handleSaveValidationErrors(
     errors: readonly WorkflowDefinitionValidationIssue[],
@@ -127,6 +167,21 @@ function WorkflowBuilderShell({
     }
 
     setSaveValidationState({
+      definitionAtFailure,
+      errors: [...errors],
+    });
+  }
+
+  function handlePublishValidationErrors(
+    errors: readonly WorkflowDefinitionValidationIssue[],
+    definitionAtFailure: WorkflowDefinition,
+  ) {
+    if (errors.length === 0) {
+      setPublishValidationState(null);
+      return;
+    }
+
+    setPublishValidationState({
       definitionAtFailure,
       errors: [...errors],
     });
@@ -154,6 +209,10 @@ function WorkflowBuilderShell({
             <h1 className="truncate text-lg font-semibold tracking-tight">
               {workflowName}
             </h1>
+            <WorkflowVersionBadges
+              draftVersion={versionState.draftVersion}
+              publishedVersion={versionState.publishedVersion}
+            />
             {isDirty ? (
               <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
                 Unsaved changes
@@ -174,7 +233,17 @@ function WorkflowBuilderShell({
         <div className="flex shrink-0 items-center gap-2">
           <WorkflowBuilderSaveDraftButton
             workflowId={workflowId}
+            onPendingChange={setIsSaving}
             onSaveValidationErrors={handleSaveValidationErrors}
+          />
+          <WorkflowBuilderPublishButton
+            workflowId={workflowId}
+            eligibility={eligibility}
+            warnings={validation.warnings}
+            isDirty={isDirty}
+            isSaving={isSaving}
+            onPublishValidationErrors={handlePublishValidationErrors}
+            onPublishSuccess={onPublishSuccess}
           />
           <WorkflowBuilderBackButton />
         </div>
@@ -190,6 +259,7 @@ function WorkflowBuilderShell({
           <WorkflowBuilderValidationPanel
             validation={validation}
             saveErrors={saveValidationErrors}
+            publishErrors={publishValidationErrors}
           />
         </div>
         <WorkflowBuilderSidebar
@@ -206,15 +276,40 @@ export function WorkflowBuilder({
   workflowName,
   workflowDescription,
   initialDefinition,
+  initialDraftVersion,
+  initialPublishedVersion,
   initialToolCatalog,
 }: WorkflowBuilderProps) {
+  const [versionState, setVersionState] = useState<BuilderVersionState>({
+    draftVersionId: initialDraftVersion.versionId,
+    draftVersion: initialDraftVersion,
+    publishedVersion: initialPublishedVersion,
+    definition: initialDefinition,
+  });
+
+  function handlePublishSuccess(
+    result: Extract<PublishWorkflowActionResult, { ok: true }>,
+  ) {
+    setVersionState({
+      draftVersionId: result.draftVersionId,
+      draftVersion: result.draftVersion,
+      publishedVersion: result.publishedVersion,
+      definition: result.draftDefinition,
+    });
+  }
+
   return (
-    <WorkflowBuilderStoreProvider initialDefinition={initialDefinition}>
+    <WorkflowBuilderStoreProvider
+      key={`${workflowId}:${versionState.draftVersionId}`}
+      initialDefinition={versionState.definition}
+    >
       <WorkflowBuilderShell
         workflowId={workflowId}
         workflowName={workflowName}
         workflowDescription={workflowDescription}
         initialToolCatalog={initialToolCatalog}
+        versionState={versionState}
+        onPublishSuccess={handlePublishSuccess}
       />
     </WorkflowBuilderStoreProvider>
   );

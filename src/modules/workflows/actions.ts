@@ -8,6 +8,11 @@ import {
   createWorkflowRequestSchema,
   updateWorkflowDraftRequestSchema,
 } from "@/contracts/workflows/requests";
+import type {
+  WorkflowDraftVersionSummary,
+  WorkflowPublishedVersionSummary,
+} from "@/contracts/workflows/responses";
+import type { WorkflowDefinition } from "@/contracts/workflows/internal";
 import type { WorkflowDefinitionValidationIssue } from "@/contracts/workflows/validation";
 import { AppError, isAppError } from "@/lib/api/errors";
 import { requireUser } from "@/modules/auth/session";
@@ -20,7 +25,9 @@ import {
   isWorkflowDefinitionValidationError,
   isWorkflowLifecycleError,
 } from "./errors";
+import { getWorkflow } from "./get-workflow";
 import { formatWorkflowFieldErrors } from "./schemas";
+import { publishWorkflow } from "./publish-workflow";
 import { updateWorkflowDraft } from "./update-draft-workflow";
 
 export type CreateWorkflowActionState = {
@@ -42,10 +49,27 @@ export type UpdateWorkflowDraftActionResult =
       validationErrors?: WorkflowDefinitionValidationIssue[];
     };
 
+export type PublishWorkflowActionResult =
+  | {
+      ok: true;
+      draftVersionId: string;
+      draftDefinition: WorkflowDefinition;
+      draftVersion: WorkflowDraftVersionSummary;
+      publishedVersion: WorkflowPublishedVersionSummary;
+      publishedVersionNumber: number;
+      publishedAt: string;
+    }
+  | {
+      ok: false;
+      error: string;
+      validationErrors?: WorkflowDefinitionValidationIssue[];
+    };
+
 const CREATE_WORKFLOW_FAILURE_MESSAGE = "Could not create workflow.";
 const ARCHIVE_WORKFLOW_FAILURE_MESSAGE = "Could not archive workflow.";
 const DUPLICATE_WORKFLOW_FAILURE_MESSAGE = "Could not duplicate workflow.";
 const UPDATE_DRAFT_FAILURE_MESSAGE = "Could not save draft.";
+const PUBLISH_WORKFLOW_FAILURE_MESSAGE = "Could not publish workflow.";
 
 function extractAppErrorFieldErrors(
   error: AppError,
@@ -89,6 +113,69 @@ function toDuplicateActionError(error: unknown): string {
   }
 
   return DUPLICATE_WORKFLOW_FAILURE_MESSAGE;
+}
+
+function extractWorkflowDefinitionValidationIssues(
+  error: AppError,
+): WorkflowDefinitionValidationIssue[] | undefined {
+  const errors = error.details?.errors;
+
+  if (!Array.isArray(errors) || errors.length === 0) {
+    return undefined;
+  }
+
+  const parsed: WorkflowDefinitionValidationIssue[] = [];
+
+  for (const issue of errors) {
+    if (
+      typeof issue === "object" &&
+      issue !== null &&
+      "severity" in issue &&
+      "code" in issue &&
+      "message" in issue &&
+      (issue.severity === "error" || issue.severity === "warning") &&
+      typeof issue.code === "string" &&
+      typeof issue.message === "string"
+    ) {
+      parsed.push({
+        severity: issue.severity,
+        code: issue.code,
+        message: issue.message,
+        ...(typeof issue.path === "string" && { path: issue.path }),
+        ...(typeof issue.nodeId === "string" && { nodeId: issue.nodeId }),
+      });
+    }
+  }
+
+  return parsed.length > 0 ? parsed : undefined;
+}
+
+function toPublishActionError(error: unknown): PublishWorkflowActionResult {
+  if (isWorkflowDefinitionValidationError(error)) {
+    return {
+      ok: false,
+      error: error.message,
+      validationErrors: [...error.errors],
+    };
+  }
+
+  if (isAppError(error)) {
+    if (error.code === "invalid_workflow_definition") {
+      return {
+        ok: false,
+        error: error.message,
+        validationErrors: extractWorkflowDefinitionValidationIssues(error),
+      };
+    }
+
+    return { ok: false, error: error.message };
+  }
+
+  if (isWorkflowLifecycleError(error)) {
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: false, error: PUBLISH_WORKFLOW_FAILURE_MESSAGE };
 }
 
 export async function archiveWorkflowAction(
@@ -216,4 +303,47 @@ export async function updateWorkflowDraftAction(
   revalidatePath(`/workflows/${parsedWorkflowId.data}`);
   revalidatePath("/workflows");
   return { ok: true };
+}
+
+export async function publishWorkflowAction(
+  workflowId: string,
+): Promise<PublishWorkflowActionResult> {
+  const parsedWorkflowId = domainEntityIdSchema.safeParse(workflowId);
+
+  if (!parsedWorkflowId.success) {
+    return { ok: false, error: "Invalid workflow." };
+  }
+
+  try {
+    const user = await requireUser();
+    const workspace = await requireCurrentWorkspace();
+    const publishResult = await publishWorkflow(parsedWorkflowId.data, {
+      user,
+      workspace,
+    });
+    const workflow = await getWorkflow(parsedWorkflowId.data, { workspace });
+
+    if (!workflow.draftVersion || !workflow.publishedVersion) {
+      throw new Error("Published workflow is missing version summaries.");
+    }
+
+    revalidatePath(`/workflows/${parsedWorkflowId.data}`);
+    revalidatePath("/workflows");
+
+    return {
+      ok: true,
+      draftVersionId: publishResult.draftVersionId,
+      draftDefinition: workflow.draftVersion.definition,
+      draftVersion: {
+        versionId: workflow.draftVersion.versionId,
+        versionNumber: workflow.draftVersion.versionNumber,
+        updatedAt: workflow.draftVersion.updatedAt,
+      },
+      publishedVersion: workflow.publishedVersion,
+      publishedVersionNumber: publishResult.publishedVersionNumber,
+      publishedAt: publishResult.publishedAt,
+    };
+  } catch (error) {
+    return toPublishActionError(error);
+  }
 }

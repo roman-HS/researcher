@@ -20,6 +20,7 @@ const SAVED_FEEDBACK_MS = 2000;
 
 type WorkflowBuilderSaveDraftButtonProps = {
   workflowId: string;
+  onPendingChange?: (isPending: boolean) => void;
   onSaveValidationErrors: (
     errors: readonly WorkflowDefinitionValidationIssue[],
     definitionAtFailure: WorkflowDefinition,
@@ -28,6 +29,7 @@ type WorkflowBuilderSaveDraftButtonProps = {
 
 export function WorkflowBuilderSaveDraftButton({
   workflowId,
+  onPendingChange,
   onSaveValidationErrors,
 }: WorkflowBuilderSaveDraftButtonProps) {
   const definition = useWorkflowBuilderStore((state) => state.definition);
@@ -43,6 +45,10 @@ export function WorkflowBuilderSaveDraftButton({
     () => validateWorkflowDefinition(definition, "draft").valid,
     [definition],
   );
+
+  useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
 
   useEffect(() => {
     return () => {
