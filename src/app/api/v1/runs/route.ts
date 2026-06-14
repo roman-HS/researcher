@@ -1,13 +1,23 @@
-import { createRunRequestSchema } from "@/contracts/runs/requests";
+import { createRunRequestSchema, listRunsQuerySchema } from "@/contracts/runs/requests";
 import { createApiRoute } from "@/lib/api/handler";
 import { parseIdempotencyKeyHeader } from "@/lib/api/idempotency";
-import { apiNotImplementedResponse, apiSuccessResponse } from "@/lib/api/responses";
-import { createRun, toCreateRunResponse } from "@/modules/runs";
+import { apiPaginatedSuccessResponse } from "@/lib/api/pagination";
+import { apiSuccessResponse } from "@/lib/api/responses";
+import { createRun, listRuns, toCreateRunResponse } from "@/modules/runs";
 
 export const GET = createApiRoute({
   auth: "workspace",
+  query: listRunsQuerySchema,
   pagination: true,
-  handler: async () => apiNotImplementedResponse(),
+  handler: async ({ query, pagination, workspace }) => {
+    if (!pagination) {
+      throw new Error("Pagination is required for run list requests.");
+    }
+
+    const result = await listRuns(query, pagination, { workspace });
+
+    return apiPaginatedSuccessResponse(result.items, result.pagination);
+  },
 });
 
 export const POST = createApiRoute({

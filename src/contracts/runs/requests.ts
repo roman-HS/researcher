@@ -7,6 +7,7 @@ import { domainEntityIdSchema } from "@/contracts/domain/primitives";
  *
  * @see Story 7.3.2 — Implement idempotent run creation service
  * @see Story 7.3.3 — Implement run creation API route
+ * @see Story 7.5.1 — Implement list runs service and API
  */
 
 export const runIdempotencyKeySchema = z.string().trim().min(1).max(128);
@@ -29,3 +30,9 @@ export function parseCreateRunRequest(value: unknown): CreateRunRequest {
 export function parseRunIdempotencyKey(value: unknown): RunIdempotencyKey {
   return runIdempotencyKeySchema.parse(value);
 }
+
+export const listRunsQuerySchema = z.object({
+  workflowId: domainEntityIdSchema.optional(),
+});
+
+export type ListRunsQuery = z.infer<typeof listRunsQuerySchema>;

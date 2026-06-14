@@ -9,6 +9,11 @@ export {
   type CreateRunResult,
 } from "./create-run";
 export {
+  listRuns,
+  type ListRunsContext,
+  type ListRunsResult,
+} from "./list-runs";
+export {
   RunLifecycleError,
   RunStepConfigResolutionError,
   ExecutionTransportStartError,

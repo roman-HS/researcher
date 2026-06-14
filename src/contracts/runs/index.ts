@@ -28,15 +28,21 @@ export {
 } from "@/contracts/runs/run-error";
 export {
   createRunRequestSchema,
+  listRunsQuerySchema,
   parseCreateRunRequest,
   parseRunIdempotencyKey,
   runIdempotencyKeySchema,
   type CreateRunRequest,
+  type ListRunsQuery,
   type RunIdempotencyKey,
 } from "@/contracts/runs/requests";
 export {
   createRunResponseSchema,
+  listRunsResponseSchema,
+  runListItemSchema,
   type CreateRunResponse,
+  type ListRunsResponse,
+  type RunListItem,
 } from "@/contracts/runs/responses";
 export {
   parseExecutionTransportStartPayload,
