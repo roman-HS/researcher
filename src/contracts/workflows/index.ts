@@ -55,6 +55,18 @@ export {
   type WorkflowStepConfigValue,
 } from "./bindings";
 export {
+  findWorkflowGraphIssues,
+  resolveWorkflowExecutionOrder,
+  validateWorkflowGraphTopology,
+  WorkflowGraphExecutionOrderError,
+  WorkflowGraphValidationError,
+  workflowGraphValidationProfiles,
+  type WorkflowGraphDefinition,
+  type WorkflowGraphIssue,
+  type WorkflowGraphIssueCode,
+  type WorkflowGraphValidationProfile,
+} from "./graph-validation";
+export {
   parseWorkflowRuntimeInputs,
   workflowBooleanRuntimeInputSchema,
   workflowNumberRuntimeInputSchema,

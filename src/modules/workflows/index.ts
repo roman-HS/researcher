@@ -6,6 +6,12 @@ export {
   type WorkflowLifecycleErrorCode,
 } from "./errors";
 export {
+  findWorkflowGraphValidationIssues,
+  validateWorkflowGraph,
+  type WorkflowToolGraphIssue,
+  type WorkflowToolGraphIssueCode,
+} from "./graph-validation";
+export {
   assertVersionCanPublish,
   assertVersionStateTransition,
   assertWorkflowAllowsMutation,
