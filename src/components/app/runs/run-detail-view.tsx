@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { RunDetailHeader } from "@/components/app/runs/run-detail-header";
+import { RunPropertyResultsTable } from "@/components/app/runs/run-property-results-table";
 import { RunStepTimeline } from "@/components/app/runs/run-step-timeline";
 import { DEFAULT_RUN_POLL_AFTER_MS } from "@/contracts/runs/polling";
 import {
@@ -13,6 +14,7 @@ import { apiClientGet } from "@/lib/api/browser-client";
 
 /**
  * @see Story 8.2.4 — Add run status polling
+ * @see Story 8.3.1 — Build property results table
  */
 
 type RunDetailViewProps = {
@@ -141,6 +143,10 @@ export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
                 : null
             : null
         }
+      />
+      <RunPropertyResultsTable
+        propertyResults={run.propertyResults}
+        runStatus={run.status}
       />
       <RunStepTimeline steps={run.steps} />
     </>

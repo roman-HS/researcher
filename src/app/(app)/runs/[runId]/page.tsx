@@ -11,6 +11,7 @@ import { requireCurrentWorkspace } from "@/modules/workspace";
  * @see Story 8.2.2 — Build run detail header
  * @see Story 8.2.3 — Build run step timeline
  * @see Story 8.2.4 — Add run status polling
+ * @see Story 8.3.1 — Build property results table
  */
 
 type RunDetailPageProps = {
