@@ -90,22 +90,28 @@ export {
 } from "./validation";
 export {
   createWorkflowRequestSchema,
+  getWorkflowParamsSchema,
   listWorkflowsQuerySchema,
   listWorkflowsStatusFilters,
   workflowNameSchema,
   type CreateWorkflowRequest,
+  type GetWorkflowParams,
   type ListWorkflowsQuery,
   type ListWorkflowsStatusFilter,
   type WorkflowName,
 } from "./requests";
 export {
   createWorkflowResponseSchema,
+  getWorkflowResponseSchema,
   listWorkflowsResponseSchema,
+  workflowDraftVersionDetailSchema,
   workflowDraftVersionSummarySchema,
   workflowListItemSchema,
   workflowPublishedVersionSummarySchema,
   type CreateWorkflowResponse,
+  type GetWorkflowResponse,
   type ListWorkflowsResponse,
+  type WorkflowDraftVersionDetail,
   type WorkflowDraftVersionSummary,
   type WorkflowListItem,
   type WorkflowPublishedVersionSummary,
