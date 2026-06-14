@@ -27,7 +27,14 @@ export {
   type RunStepErrorJson,
 } from "@/contracts/runs/run-error";
 export {
-  executionTransportStartPayloadSchema,
+  createRunRequestSchema,
+  parseCreateRunRequest,
+  parseRunIdempotencyKey,
+  runIdempotencyKeySchema,
+  type CreateRunRequest,
+  type RunIdempotencyKey,
+} from "@/contracts/runs/requests";
+export {
   parseExecutionTransportStartPayload,
   type ExecutionTransport,
   type ExecutionTransportStartPayload,

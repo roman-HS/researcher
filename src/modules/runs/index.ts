@@ -1,7 +1,12 @@
 export const RUNS_MODULE_ROOT = "runs" as const;
 
 export {
-  RunInputValidationError,
+  createRun,
+  type CreateRunContext,
+  type CreateRunOptions,
+  type CreateRunResult,
+} from "./create-run";
+export {
   RunLifecycleError,
   RunStepConfigResolutionError,
   ExecutionTransportStartError,
