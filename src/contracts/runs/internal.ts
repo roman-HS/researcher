@@ -6,10 +6,20 @@
  */
 
 export {
+  buildPropertyKeyFromAddressFallback,
+  buildPropertyKeyFromProviderId,
+  buildPropertyKeyFromSource,
+  derivePropertyKey,
+  propertyKeySchema,
+  withPropertyKey,
+  type PropertyKey,
+} from "@/contracts/runs/property-key";
+export {
   createEmptyExecutionWorkingSet,
   EXECUTION_WORKING_SET_VERSION,
   executionWorkingSetPatchSchema,
   executionWorkingSetSchema,
+  mergeExecutionWorkingSet,
   parseExecutionWorkingSet,
   parseExecutionWorkingSetPatch,
   type ExecutionWorkingSet,
