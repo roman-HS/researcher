@@ -19,6 +19,9 @@ import {
 import { createStatusEnum } from "./helpers/enums";
 import { workspaces } from "./workspace";
 
+/**
+ * Postgres enum literals must match `src/contracts/workflows/lifecycle.ts`.
+ */
 export const workflowStatusEnum = createStatusEnum("workflow_status", [
   "active",
   "archived",
