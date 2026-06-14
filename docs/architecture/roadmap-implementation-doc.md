@@ -3544,7 +3544,7 @@ Make the product usable end-to-end by adding run forms, run lists, run details, 
 
 1. Should the builder show “Publish to run” when a workflow has unsaved draft changes?
 
-## HERE ------ Epic 8.2 — Runs list and run detail
+## Epic 8.2 — Runs list and run detail
 
 ### Story 8.2.1 — Build runs list page
 
@@ -3804,7 +3804,7 @@ Make the product usable end-to-end by adding run forms, run lists, run details, 
 
 1. Should users be able to rerun only failed items in V1?
 
-## Epic 8.4 — Rerun and workflow iteration
+## HERE ------ Epic 8.4 — Rerun and workflow iteration
 
 ### Story 8.4.1 — Add rerun with same inputs
 
