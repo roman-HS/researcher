@@ -4,12 +4,8 @@ import { WorkflowBuilder } from "@/components/app/workflows/workflow-builder";
 import NonEditableDraft from "@/components/app/workflows/non-editable-draft";
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
 import { isAppError } from "@/lib/api/errors";
-import { buildNodeValidationStatusByNodeId } from "@/lib/workflows/node-validation-status";
 import { listToolsForDiscovery } from "@/modules/tools";
-import {
-  getWorkflow,
-  validateWorkflowDefinition,
-} from "@/modules/workflows";
+import { getWorkflow } from "@/modules/workflows";
 import { requireCurrentWorkspace } from "@/modules/workspace";
 
 type WorkflowBuilderPageProps = {
@@ -44,12 +40,7 @@ export default async function WorkflowBuilderPage({
   }
 
   const draftDefinition = workflow.draftVersion.definition;
-  const draftValidation = validateWorkflowDefinition(draftDefinition, "draft");
   const initialToolCatalog = listToolsForDiscovery();
-  const nodeValidationStatusByNodeId = buildNodeValidationStatusByNodeId([
-    ...draftValidation.errors,
-    ...draftValidation.warnings,
-  ]);
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden">
@@ -59,7 +50,6 @@ export default async function WorkflowBuilderPage({
         workflowDescription={workflow.description}
         initialDefinition={draftDefinition}
         initialToolCatalog={initialToolCatalog}
-        nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
       />
     </div>
   );

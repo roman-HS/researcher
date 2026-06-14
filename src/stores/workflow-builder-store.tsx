@@ -42,6 +42,7 @@ export type WorkflowBuilderState = {
   updateWorkflowNode: (nodeId: string, patch: WorkflowNodeCommonPatch) => void;
   clearPendingSelectNodeId: () => void;
   clearPendingFocusNodeId: () => void;
+  focusNodeFromValidation: (nodeId: string) => void;
 };
 
 export type WorkflowBuilderStore = StoreApi<WorkflowBuilderState>;
@@ -114,6 +115,13 @@ export function createWorkflowBuilderStore(
     },
     clearPendingFocusNodeId: () => {
       set({ pendingFocusNodeId: null });
+    },
+    focusNodeFromValidation: (nodeId) => {
+      set({
+        selectedNodeId: nodeId,
+        pendingSelectNodeId: nodeId,
+        pendingFocusNodeId: nodeId,
+      });
     },
   }));
 }

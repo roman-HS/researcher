@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
 import { WorkflowBuilderSidebar } from "@/components/app/workflows/workflow-builder-sidebar";
+import { WorkflowBuilderValidationPanel } from "@/components/app/workflows/workflow-builder-validation-panel";
+import { WorkflowBuilderValidationStatus } from "@/components/app/workflows/workflow-builder-validation-status";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -19,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import type { ListToolsResponse } from "@/contracts/tools/responses";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
 import { buildToolMetadataByKey } from "@/lib/workflows/builder-tool-metadata";
-import type { WorkflowNodeValidationStatus } from "@/lib/workflows/node-validation-status";
+import { useWorkflowBuilderValidation } from "@/lib/workflows/use-workflow-builder-validation";
 import {
   WorkflowBuilderStoreProvider,
   useWorkflowBuilderStore,
@@ -30,7 +32,6 @@ type WorkflowBuilderProps = {
   workflowDescription: string | null;
   initialDefinition: WorkflowDefinition;
   initialToolCatalog: ListToolsResponse;
-  nodeValidationStatusByNodeId: Record<string, WorkflowNodeValidationStatus>;
 };
 
 function WorkflowBuilderBackButton() {
@@ -83,9 +84,10 @@ function WorkflowBuilderShell({
   workflowName,
   workflowDescription,
   initialToolCatalog,
-  nodeValidationStatusByNodeId,
 }: Omit<WorkflowBuilderProps, "initialDefinition">) {
   const isDirty = useWorkflowBuilderStore((state) => state.isDirty);
+  const { validation, nodeValidationStatusByNodeId, eligibility } =
+    useWorkflowBuilderValidation();
   const toolMetadataByKey = useMemo(
     () => buildToolMetadataByKey(initialToolCatalog),
     [initialToolCatalog],
@@ -118,6 +120,11 @@ function WorkflowBuilderShell({
                 Unsaved changes
               </span>
             ) : null}
+            <WorkflowBuilderValidationStatus
+              eligibility={eligibility}
+              errorCount={validation.errors.length}
+              warningCount={validation.warnings.length}
+            />
           </div>
           {workflowDescription ? (
             <p className="truncate text-sm text-muted-foreground">
@@ -128,11 +135,14 @@ function WorkflowBuilderShell({
         <WorkflowBuilderBackButton />
       </div>
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        <div className="relative h-full min-h-0 min-w-0 flex-1 overflow-hidden">
-          <WorkflowBuilderCanvas
-            toolMetadataByKey={toolMetadataByKey}
-            nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
-          />
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <div className="relative min-h-0 flex-1 overflow-hidden">
+            <WorkflowBuilderCanvas
+              toolMetadataByKey={toolMetadataByKey}
+              nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
+            />
+          </div>
+          <WorkflowBuilderValidationPanel validation={validation} />
         </div>
         <WorkflowBuilderSidebar
           toolCatalog={initialToolCatalog}
@@ -148,7 +158,6 @@ export function WorkflowBuilder({
   workflowDescription,
   initialDefinition,
   initialToolCatalog,
-  nodeValidationStatusByNodeId,
 }: WorkflowBuilderProps) {
   return (
     <WorkflowBuilderStoreProvider initialDefinition={initialDefinition}>
@@ -156,7 +165,6 @@ export function WorkflowBuilder({
         workflowName={workflowName}
         workflowDescription={workflowDescription}
         initialToolCatalog={initialToolCatalog}
-        nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
       />
     </WorkflowBuilderStoreProvider>
   );

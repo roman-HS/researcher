@@ -54,20 +54,22 @@ export function WorkflowBuilderCanvas({
   const definition = useWorkflowBuilderStore((state) => state.definition);
   const setDefinition = useWorkflowBuilderStore((state) => state.setDefinition);
   const pendingSelectNodeId = useWorkflowBuilderStore(
-    (state) => state.pendingSelectNodeId,
+    (state) => state.pendingSelectNodeId
   );
   const clearPendingSelectNodeId = useWorkflowBuilderStore(
-    (state) => state.clearPendingSelectNodeId,
+    (state) => state.clearPendingSelectNodeId
   );
-  const selectedNodeId = useWorkflowBuilderStore((state) => state.selectedNodeId);
+  const selectedNodeId = useWorkflowBuilderStore(
+    (state) => state.selectedNodeId
+  );
   const setSelectedNodeId = useWorkflowBuilderStore(
-    (state) => state.setSelectedNodeId,
+    (state) => state.setSelectedNodeId
   );
 
   const [hasSelectedNode, setHasSelectedNode] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<
-    WorkflowFlowNode[] | null
-  >(null);
+  const [pendingDelete, setPendingDelete] = useState<WorkflowFlowNode[] | null>(
+    null
+  );
   const deleteConfirmationResolverRef = useRef<
     ((confirmed: boolean) => void) | null
   >(null);
@@ -77,19 +79,19 @@ export function WorkflowBuilderCanvas({
       toolMetadataByKey,
       nodeValidationStatusByNodeId,
     }),
-    [nodeValidationStatusByNodeId, toolMetadataByKey],
+    [nodeValidationStatusByNodeId, toolMetadataByKey]
   );
 
   const derivedFlow = useMemo(
     () => workflowDefinitionToFlow(definition, flowOptions),
-    [definition, flowOptions],
+    [definition, flowOptions]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState<WorkflowFlowNode>(
-    derivedFlow.nodes,
+    derivedFlow.nodes
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState<WorkflowFlowEdge>(
-    derivedFlow.edges,
+    derivedFlow.edges
   );
 
   useEffect(() => {
@@ -98,7 +100,7 @@ export function WorkflowBuilderCanvas({
         derivedFlow.nodes.map((node) => ({
           ...node,
           selected: node.id === pendingSelectNodeId,
-        })),
+        }))
       );
       clearPendingSelectNodeId();
     } else {
@@ -106,7 +108,7 @@ export function WorkflowBuilderCanvas({
         derivedFlow.nodes.map((node) => ({
           ...node,
           selected: selectedNodeId ? node.id === selectedNodeId : false,
-        })),
+        }))
       );
     }
 
@@ -125,13 +127,13 @@ export function WorkflowBuilderCanvas({
     (
       nextNodes: WorkflowFlowNode[],
       nextEdges: WorkflowFlowEdge[],
-      baseDefinition: typeof definition,
+      baseDefinition: typeof definition
     ) => {
       setDefinition(
-        flowToWorkflowDefinition(nextNodes, nextEdges, baseDefinition),
+        flowToWorkflowDefinition(nextNodes, nextEdges, baseDefinition)
       );
     },
-    [setDefinition],
+    [setDefinition]
   );
 
   const requestDeleteConfirmation = useCallback(
@@ -140,7 +142,7 @@ export function WorkflowBuilderCanvas({
         deleteConfirmationResolverRef.current = resolve;
         setPendingDelete(nodesToDelete);
       }),
-    [],
+    []
   );
 
   const resolveDeleteConfirmation = useCallback((confirmed: boolean) => {
@@ -156,7 +158,7 @@ export function WorkflowBuilderCanvas({
       }
 
       const needsConfirmation = nodesToDelete.some((node) =>
-        workflowNodeHasIncidentEdges(node.id, definition),
+        workflowNodeHasIncidentEdges(node.id, definition)
       );
 
       if (needsConfirmation) {
@@ -181,7 +183,7 @@ export function WorkflowBuilderCanvas({
       selectedNodeId,
       setDefinition,
       setSelectedNodeId,
-    ],
+    ]
   );
 
   const handleNodeDragStop = useCallback<OnNodeDrag<WorkflowFlowNode>>(
@@ -189,12 +191,12 @@ export function WorkflowBuilderCanvas({
       const nextNodes = nodes.map((currentNode) =>
         currentNode.id === node.id
           ? { ...currentNode, position: node.position }
-          : currentNode,
+          : currentNode
       );
 
       commitGraph(nextNodes, edges, definition);
     },
-    [commitGraph, definition, edges, nodes],
+    [commitGraph, definition, edges, nodes]
   );
 
   const handleEdgesChange = useCallback(
@@ -208,7 +210,7 @@ export function WorkflowBuilderCanvas({
       const nextEdges = applyEdgeChanges(changes, edges);
       commitGraph(nodes, nextEdges, definition);
     },
-    [commitGraph, definition, edges, nodes, onEdgesChange],
+    [commitGraph, definition, edges, nodes, onEdgesChange]
   );
 
   const handleConnect = useCallback(
@@ -222,18 +224,18 @@ export function WorkflowBuilderCanvas({
           ...connection,
           id: `${connection.source}->${connection.target}`,
         },
-        edges,
+        edges
       );
 
       commitGraph(nodes, nextEdges, definition);
     },
-    [commitGraph, definition, edges, nodes],
+    [commitGraph, definition, edges, nodes]
   );
 
   const handleIsValidConnection = useCallback(
     (connection: Connection | WorkflowFlowEdge) =>
       isValidWorkflowConnection(connection, definition),
-    [definition],
+    [definition]
   );
 
   const handleSelectionChange = useCallback<OnSelectionChangeFunc>(
@@ -241,7 +243,7 @@ export function WorkflowBuilderCanvas({
       setHasSelectedNode(selectedNodes.length > 0);
       setSelectedNodeId(selectedNodes[0]?.id ?? null);
     },
-    [setSelectedNodeId],
+    [setSelectedNodeId]
   );
 
   const handlePaneClick = useCallback(() => {
@@ -271,24 +273,23 @@ export function WorkflowBuilderCanvas({
       }
 
       const removedEdgeIds = new Set(
-        edgesToDelete.map((edge) => edge.id).filter(Boolean),
+        edgesToDelete.map((edge) => edge.id).filter(Boolean)
       );
       const nextEdges = edges.filter(
-        (edge) => edge.id && !removedEdgeIds.has(edge.id),
+        (edge) => edge.id && !removedEdgeIds.has(edge.id)
       );
 
       commitGraph(nodes, nextEdges, definition);
       return false;
     },
-    [commitGraph, definition, deleteNodes, edges, nodes],
+    [commitGraph, definition, deleteNodes, edges, nodes]
   );
 
   const pendingDeleteTitles =
-    pendingDelete?.map((node) => node.data.workflowNode.title).join(", ") ??
-    "";
+    pendingDelete?.map((node) => node.data.workflowNode.title).join(", ") ?? "";
   const pendingDeleteIsConnected =
     pendingDelete?.some((node) =>
-      workflowNodeHasIncidentEdges(node.id, definition),
+      workflowNodeHasIncidentEdges(node.id, definition)
     ) ?? false;
 
   const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 0.8 };
@@ -324,7 +325,7 @@ export function WorkflowBuilderCanvas({
         <Background
           variant={BackgroundVariant.Dots}
           gap={20}
-          size={1}
+          size={2}
           color="var(--border)"
         />
         <WorkflowBuilderCanvasControls
