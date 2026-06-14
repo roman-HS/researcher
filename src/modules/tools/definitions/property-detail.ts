@@ -13,6 +13,16 @@ export const propertyDetailConfigSchema = z.object({
 
 export type PropertyDetailConfig = z.infer<typeof propertyDetailConfigSchema>;
 
+/** Binding-free config values passed to the executor after Story 7.2.4 resolution. */
+export const propertyDetailResolvedConfigSchema = z.object({
+  sourceMode: z.enum(["listingBased"]).default("listingBased"),
+  maxProperties: z.number().int().positive().default(50),
+});
+
+export type PropertyDetailResolvedConfig = z.infer<
+  typeof propertyDetailResolvedConfigSchema
+>;
+
 export const propertyDetailTool = defineToolDefinition({
   key: "rapidapi.zillow.loadPropertyDetails@1",
   name: "Property Detail",

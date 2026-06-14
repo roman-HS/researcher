@@ -1,10 +1,24 @@
 import { listingSearchToolKey } from "@/contracts/providers/zillow/listing-search";
+import { propertyDetailToolKey } from "@/contracts/providers/zillow/property-detail";
 import type { ToolExecutor } from "@/contracts/runs";
 import type { ToolKey } from "@/contracts/tools";
 import { ExecutorNotFoundError } from "@/modules/tools/executors/errors";
 import { executeListingSearch } from "@/modules/tools/executors/listing-search";
+import { executePropertyDetail } from "@/modules/tools/executors/property-detail";
 import { createNotImplementedToolExecutor } from "@/modules/tools/executors/not-implemented";
 import { V1_TOOL_KEYS, V1_TOOLS } from "@/modules/tools/registry";
+
+function resolveExecutor(toolKey: ToolKey): ToolExecutor {
+  if (toolKey === listingSearchToolKey) {
+    return executeListingSearch;
+  }
+
+  if (toolKey === propertyDetailToolKey) {
+    return executePropertyDetail;
+  }
+
+  return createNotImplementedToolExecutor(toolKey);
+}
 
 type ExecutorRegistration = {
   toolKey: ToolKey;
@@ -55,10 +69,7 @@ function buildExecutorRegistry(registrations: readonly ExecutorRegistration[]) {
 
 const rawV1Executors: ExecutorRegistration[] = V1_TOOLS.map((tool) => ({
   toolKey: tool.key,
-  execute:
-    tool.key === listingSearchToolKey
-      ? executeListingSearch
-      : createNotImplementedToolExecutor(tool.key),
+  execute: resolveExecutor(tool.key),
 }));
 
 const registry = buildExecutorRegistry(rawV1Executors);
