@@ -6,7 +6,8 @@ export type WorkflowLifecycleErrorCode =
   | "invalid_transition"
   | "workflow_archived"
   | "invalid_status"
-  | "no_draft_to_publish";
+  | "no_draft_to_publish"
+  | "no_source_definition";
 
 export class WorkflowLifecycleError extends Error {
   override readonly name = "WorkflowLifecycleError";

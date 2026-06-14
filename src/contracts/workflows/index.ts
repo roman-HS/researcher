@@ -98,6 +98,9 @@ export {
 } from "./validation";
 export {
   createWorkflowRequestSchema,
+  duplicateWorkflowParamsSchema,
+  duplicateWorkflowRequestSchema,
+  duplicateWorkflowSources,
   getWorkflowParamsSchema,
   listWorkflowsQuerySchema,
   listWorkflowsStatusFilters,
@@ -106,6 +109,9 @@ export {
   publishWorkflowParamsSchema,
   workflowNameSchema,
   type CreateWorkflowRequest,
+  type DuplicateWorkflowParams,
+  type DuplicateWorkflowRequest,
+  type DuplicateWorkflowSource,
   type GetWorkflowParams,
   type ListWorkflowsQuery,
   type ListWorkflowsStatusFilter,
@@ -116,6 +122,7 @@ export {
 } from "./requests";
 export {
   createWorkflowResponseSchema,
+  duplicateWorkflowResponseSchema,
   getWorkflowResponseSchema,
   listWorkflowsResponseSchema,
   publishWorkflowResponseSchema,
@@ -127,6 +134,7 @@ export {
   workflowListItemSchema,
   workflowPublishedVersionSummarySchema,
   type CreateWorkflowResponse,
+  type DuplicateWorkflowResponse,
   type GetWorkflowResponse,
   type ListWorkflowsResponse,
   type PublishWorkflowResponse,

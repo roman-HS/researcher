@@ -12,6 +12,7 @@ import { workflowDefinitionSchema } from "./internal";
  * @see Story 4.3.3 — Implement get workflow detail service
  * @see Story 4.3.4 — Implement update draft workflow service
  * @see Story 4.3.5 — Implement publish workflow service
+ * @see Story 4.3.6 — Implement duplicate workflow service
  */
 
 export const workflowNameSchema = z.string().trim().min(1).max(120);
@@ -77,3 +78,23 @@ export type UpdateWorkflowDraftParams = GetWorkflowParams;
 export const publishWorkflowParamsSchema = getWorkflowParamsSchema;
 
 export type PublishWorkflowParams = GetWorkflowParams;
+
+export const duplicateWorkflowSources = ["draft", "published"] as const;
+
+export type DuplicateWorkflowSource = (typeof duplicateWorkflowSources)[number];
+
+export const duplicateWorkflowRequestSchema = z
+  .object({
+    name: workflowNameSchema.optional(),
+    description: workflowDescriptionInputSchema,
+    source: z.enum(duplicateWorkflowSources).optional(),
+  })
+  .strict();
+
+export type DuplicateWorkflowRequest = z.infer<
+  typeof duplicateWorkflowRequestSchema
+>;
+
+export const duplicateWorkflowParamsSchema = getWorkflowParamsSchema;
+
+export type DuplicateWorkflowParams = GetWorkflowParams;

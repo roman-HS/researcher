@@ -21,6 +21,10 @@ export {
   type UpdateWorkflowDraftContext,
 } from "./update-draft-workflow";
 export {
+  duplicateWorkflow,
+  type DuplicateWorkflowContext,
+} from "./duplicate-workflow";
+export {
   publishWorkflow,
   type PublishWorkflowContext,
 } from "./publish-workflow";

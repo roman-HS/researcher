@@ -14,6 +14,7 @@ import { workflowNameSchema } from "./requests";
  * @see Story 4.3.3 — Implement get workflow detail service
  * @see Story 4.3.4 — Implement update draft workflow service
  * @see Story 4.3.5 — Implement publish workflow service
+ * @see Story 4.3.6 — Implement duplicate workflow service
  */
 
 import { workflowDefinitionValidationIssueSchema } from "./validation";
@@ -133,3 +134,7 @@ export const publishWorkflowResponseSchema = z.object({
 export type PublishWorkflowResponse = z.infer<
   typeof publishWorkflowResponseSchema
 >;
+
+export const duplicateWorkflowResponseSchema = createWorkflowResponseSchema;
+
+export type DuplicateWorkflowResponse = CreateWorkflowResponse;
