@@ -1,0 +1,86 @@
+import type { ToolArtefactType } from "@/contracts/tools/internal";
+import type { WorkflowDefinition } from "@/contracts/workflows/internal";
+import { resolveWorkflowExecutionOrder } from "@/contracts/workflows/graph-validation";
+import { formatArtefactList } from "@/lib/workflows/tool-display";
+import { getToolDefinition, hasToolKey } from "@/modules/tools/registry";
+
+/**
+ * Client-safe upstream artefact compatibility checks for the workflow builder.
+ *
+ * @see Story 5.3.5 — Build Property Detail inspector form
+ */
+
+export function nodeHasCompatibleUpstreamArtefact(
+  definition: WorkflowDefinition,
+  nodeId: string,
+): boolean {
+  const node = definition.nodes.find((item) => item.id === nodeId);
+
+  if (!node || !hasToolKey(node.toolKey)) {
+    return true;
+  }
+
+  const tool = getToolDefinition(node.toolKey);
+
+  if (tool.accepts.length === 0) {
+    return true;
+  }
+
+  let executionOrder: string[];
+
+  try {
+    executionOrder = resolveWorkflowExecutionOrder(definition);
+  } catch {
+    return true;
+  }
+
+  const nodesById = new Map(
+    definition.nodes.map((item) => [item.id, item] as const),
+  );
+  const producedArtefacts = new Set<ToolArtefactType>();
+
+  for (const currentNodeId of executionOrder) {
+    const currentNode = nodesById.get(currentNodeId);
+
+    if (!currentNode || !hasToolKey(currentNode.toolKey)) {
+      continue;
+    }
+
+    const currentTool = getToolDefinition(currentNode.toolKey);
+
+    if (currentNodeId === nodeId) {
+      return currentTool.accepts.some((artefact) =>
+        producedArtefacts.has(artefact),
+      );
+    }
+
+    for (const artefact of currentTool.produces) {
+      producedArtefacts.add(artefact);
+    }
+  }
+
+  return true;
+}
+
+export function getMissingUpstreamArtefactMessage(
+  definition: WorkflowDefinition,
+  nodeId: string,
+): string | null {
+  const node = definition.nodes.find((item) => item.id === nodeId);
+
+  if (!node || !hasToolKey(node.toolKey)) {
+    return null;
+  }
+
+  const tool = getToolDefinition(node.toolKey);
+
+  if (tool.accepts.length === 0) {
+    return null;
+  }
+
+  if (nodeHasCompatibleUpstreamArtefact(definition, nodeId)) {
+    return null;
+  }
+
+  return `This step requires ${formatArtefactList(tool.accepts).toLowerCase()} from an upstream step, but none were found on this path. Add a Listing Search step before this one.`;
+}

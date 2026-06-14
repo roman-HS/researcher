@@ -3,6 +3,7 @@
 import type { ComponentType } from "react";
 
 import { ListingSearchInspector } from "@/components/app/workflows/listing-search-inspector";
+import { PropertyDetailInspector } from "@/components/app/workflows/property-detail-inspector";
 import { WorkflowToolConfigPlaceholder } from "@/components/app/workflows/workflow-tool-config-placeholder";
 import type { InspectorComponentKey } from "@/contracts/tools/internal";
 
@@ -23,6 +24,7 @@ const toolConfigInspectors: Partial<
   >
 > = {
   listingSearch: ListingSearchInspector,
+  propertyDetail: PropertyDetailInspector,
 };
 
 type WorkflowToolConfigInspectorShellProps = {

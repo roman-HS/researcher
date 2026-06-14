@@ -2,7 +2,6 @@ import "server-only";
 
 import type { ZodError } from "zod";
 
-import type { ToolArtefactType } from "@/contracts/tools";
 import {
   findWorkflowInputBindingReferenceIssues,
 } from "@/contracts/workflows/bindings";
@@ -23,6 +22,7 @@ import { findWorkflowGraphValidationIssues } from "@/modules/workflows/graph-val
 import { listingSearchToolKey } from "@/contracts/providers/zillow/listing-search";
 import { getToolDefinition, hasToolKey } from "@/modules/tools/registry";
 import { listingSearchConfigStrictSchema } from "@/modules/tools/definitions/listing-search";
+import { nodeHasCompatibleUpstreamArtefact } from "@/lib/workflows/upstream-artefact-compatibility";
 
 import { WorkflowDefinitionValidationError } from "./errors";
 
@@ -164,13 +164,8 @@ function collectUpstreamArtefactWarnings(
     return warnings;
   }
 
-  const nodesById = new Map(
-    definition.nodes.map((node) => [node.id, node] as const),
-  );
-  const producedArtefacts = new Set<ToolArtefactType>();
-
   for (const nodeId of executionOrder) {
-    const node = nodesById.get(nodeId);
+    const node = definition.nodes.find((item) => item.id === nodeId);
 
     if (!node || !hasToolKey(node.toolKey)) {
       continue;
@@ -178,28 +173,22 @@ function collectUpstreamArtefactWarnings(
 
     const tool = getToolDefinition(node.toolKey);
 
-    if (tool.accepts.length > 0) {
-      const hasCompatibleUpstream = tool.accepts.some((artefact) =>
-        producedArtefacts.has(artefact),
-      );
-
-      if (!hasCompatibleUpstream) {
-        warnings.push(
-          createValidationIssue(
-            "warning",
-            "upstream_artefact_missing",
-            `Node "${node.id}" expects upstream artefacts (${tool.accepts.join(", ")}), but none have been produced yet on this path.`,
-            {
-              nodeId: node.id,
-              path: `nodes.${node.id}`,
-            },
-          ),
-        );
-      }
+    if (tool.accepts.length === 0) {
+      continue;
     }
 
-    for (const artefact of tool.produces) {
-      producedArtefacts.add(artefact);
+    if (!nodeHasCompatibleUpstreamArtefact(definition, nodeId)) {
+      warnings.push(
+        createValidationIssue(
+          "warning",
+          "upstream_artefact_missing",
+          `Node "${node.id}" expects upstream artefacts (${tool.accepts.join(", ")}), but none have been produced yet on this path.`,
+          {
+            nodeId: node.id,
+            path: `nodes.${node.id}`,
+          },
+        ),
+      );
     }
   }
 
