@@ -9,15 +9,21 @@ export {
 } from "@/contracts/providers/zillow/shared";
 
 export {
-  comparablesCompTypeSchema,
+  comparablesEndpointPath,
   comparablesItemSchema,
+  comparablesPropertyPayloadSchema,
+  comparablesProviderIdSchema,
   comparablesRequestSchema,
   comparablesResponseSchema,
+  comparablesResultItemSchema,
   comparablesToolKey,
-  type ComparablesCompType,
+  comparablesV1CompStatus,
   type ComparablesItem,
+  type ComparablesPropertyPayload,
+  type ComparablesProviderId,
   type ComparablesRequest,
   type ComparablesResponse,
+  type ComparablesResultItem,
 } from "@/contracts/providers/zillow/comparables";
 
 export {

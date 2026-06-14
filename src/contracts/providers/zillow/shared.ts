@@ -3,8 +3,8 @@ import { z } from "zod";
 /**
  * Shared constants for private-Zillow provider contracts.
  *
- * Listing search confirmed in Story 6.1.1; property detail in Story 6.1.2.
- * Comparables and rent estimate remain planning assumptions until 6.1.3–6.1.4.
+ * Listing search confirmed in Story 6.1.1; property detail in Story 6.1.2;
+ * comparables in Story 6.1.3. Rent estimate remains a planning assumption until 6.1.4.
  */
 
 export const ZILLOW_PROVIDER_NAME = "rapidapi.zillow" as const;

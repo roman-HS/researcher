@@ -1,7 +1,8 @@
 /**
  * Outbound provider API request schemas.
  *
- * Listing search confirmed in Story 6.1.1; property detail in Story 6.1.2.
+ * Listing search confirmed in Story 6.1.1; property detail in Story 6.1.2;
+ * comparables in Story 6.1.3.
  */
 
 export {

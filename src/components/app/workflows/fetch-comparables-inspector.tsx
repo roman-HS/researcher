@@ -99,11 +99,10 @@ export function FetchComparablesInspector({
 
       <Alert className="border-border/60 bg-muted/30">
         <InfoIcon />
-        <AlertTitle>Provider capabilities unconfirmed</AlertTitle>
+        <AlertTitle>Sale comparables only</AlertTitle>
         <AlertDescription>
-          Sale vs rent comparable modes and radius or distance filters depend on
-          the private-Zillow endpoint and will be confirmed in a later release.
-          Only the comparable count is configurable for now.
+          The provider returns recently-sold sale comparables. Rent comps, radius
+          filters, and sale/rent mode selection are not available on this endpoint.
         </AlertDescription>
       </Alert>
 
@@ -127,7 +126,8 @@ export function FetchComparablesInspector({
         onChange={(nextValue) => updateConfig({ maxComparables: nextValue })}
       />
       <p className="text-[11px] text-muted-foreground">
-        Limits how many comparables are fetched per property. Defaults to 10.
+        Limits how many comparables are kept per property after the provider
+        response is fetched. Defaults to 10.
       </p>
     </div>
   );
