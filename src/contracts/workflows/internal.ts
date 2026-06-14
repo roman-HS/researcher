@@ -2,28 +2,19 @@ import { z } from "zod";
 
 import { toolKeySchema } from "@/contracts/tools/internal";
 
+import {
+  workflowRuntimeInputKeySchema,
+  workflowRuntimeInputsSchema,
+} from "./runtime-inputs";
+
 /**
  * Non-HTTP workflow shapes (e.g. definition documents, bindings).
  *
  * @see Story 4.2.1 — Define WorkflowDefinitionSchema
- * @see Story 4.2.2 — Define workflow runtime input schema
  * @see Story 4.2.3 — Define parameter binding schema
  */
 
 export const WORKFLOW_DEFINITION_VERSION = 1 as const;
-
-const runtimeInputKeyPattern = /^[a-z][a-zA-Z0-9]*$/;
-
-export const workflowRuntimeInputKeySchema = z
-  .string()
-  .regex(
-    runtimeInputKeyPattern,
-    "Runtime input key must start with a lowercase letter and use only letters and numbers.",
-  );
-
-export type WorkflowRuntimeInputKey = z.infer<
-  typeof workflowRuntimeInputKeySchema
->;
 
 const workflowNodeIdPattern = /^[a-z][a-z0-9_-]*$/;
 
@@ -35,62 +26,6 @@ export const workflowNodeIdSchema = z
   );
 
 export type WorkflowNodeId = z.infer<typeof workflowNodeIdSchema>;
-
-const workflowRuntimeInputBaseFields = {
-  key: workflowRuntimeInputKeySchema,
-  label: z.string().min(1),
-  required: z.boolean().default(false),
-  helperText: z.string().optional(),
-} as const;
-
-export const workflowTextRuntimeInputSchema = z
-  .object({
-    ...workflowRuntimeInputBaseFields,
-    type: z.literal("text"),
-    default: z.string().optional(),
-  })
-  .strict();
-
-export const workflowNumberRuntimeInputSchema = z
-  .object({
-    ...workflowRuntimeInputBaseFields,
-    type: z.literal("number"),
-    default: z.number().optional(),
-  })
-  .strict();
-
-export const workflowBooleanRuntimeInputSchema = z
-  .object({
-    ...workflowRuntimeInputBaseFields,
-    type: z.literal("boolean"),
-    default: z.boolean().optional(),
-  })
-  .strict();
-
-export const workflowSelectOptionSchema = z
-  .object({
-    value: z.string().min(1),
-    label: z.string().min(1),
-  })
-  .strict();
-
-export const workflowSelectRuntimeInputSchema = z
-  .object({
-    ...workflowRuntimeInputBaseFields,
-    type: z.literal("select"),
-    default: z.string().optional(),
-    options: z.array(workflowSelectOptionSchema).min(1),
-  })
-  .strict();
-
-export const workflowRuntimeInputSchema = z.discriminatedUnion("type", [
-  workflowTextRuntimeInputSchema,
-  workflowNumberRuntimeInputSchema,
-  workflowBooleanRuntimeInputSchema,
-  workflowSelectRuntimeInputSchema,
-]);
-
-export type WorkflowRuntimeInput = z.infer<typeof workflowRuntimeInputSchema>;
 
 export const workflowConstBindingSchema = z
   .object({
@@ -178,13 +113,7 @@ export const workflowDefinitionSchema = z
   .object({
     definitionVersion: z.literal(WORKFLOW_DEFINITION_VERSION),
     trigger: workflowTriggerSchema,
-    runtimeInputs: z
-      .array(workflowRuntimeInputSchema)
-      .default([])
-      .refine(
-        (inputs) => hasUniqueValues(inputs.map((input) => input.key)),
-        "Runtime input keys must be unique.",
-      ),
+    runtimeInputs: workflowRuntimeInputsSchema.default([]),
     nodes: z
       .array(workflowToolNodeSchema)
       .default([])
