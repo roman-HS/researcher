@@ -2705,7 +2705,7 @@ Implement the first real tool executors, map RapidAPI/private-Zillow responses i
 
 1. Should rent estimate be required for metrics calculation, or can metrics mark rent-dependent fields as unavailable?
 
-## HERE ------ Epic 6.4 — Deterministic analysis tool executors
+## Epic 6.4 — Deterministic analysis tool executors
 
 ### Story 6.4.1 — Implement Metrics Calculation executor
 
@@ -2858,7 +2858,7 @@ Implement the first real tool executors, map RapidAPI/private-Zillow responses i
 
 Create the run model, execution engine, status lifecycle, idempotent run creation, step execution, partial-result handling, and run APIs.
 
-## Epic 7.1 — Run persistence model
+## HERE ------ Epic 7.1 — Run persistence model
 
 ### Story 7.1.1 — Create workflow_runs table
 

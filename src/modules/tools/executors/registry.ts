@@ -16,6 +16,8 @@ import { executeFetchComparables } from "@/modules/tools/executors/fetch-compara
 import { executeListingSearch } from "@/modules/tools/executors/listing-search";
 import { executePropertyDetail } from "@/modules/tools/executors/property-detail";
 import { createNotImplementedToolExecutor } from "@/modules/tools/executors/not-implemented";
+import { generateSummaryToolKey } from "@/modules/tools/definitions/generate-summary";
+import { executeGenerateSummary } from "@/modules/tools/executors/generate-summary";
 import { V1_TOOL_KEYS, V1_TOOLS } from "@/modules/tools/registry";
 
 function resolveExecutor(toolKey: ToolKey): ToolExecutor {
@@ -45,6 +47,10 @@ function resolveExecutor(toolKey: ToolKey): ToolExecutor {
 
   if (toolKey === aggregateAreaToolKey) {
     return executeAggregateArea;
+  }
+
+  if (toolKey === generateSummaryToolKey) {
+    return executeGenerateSummary;
   }
 
   return createNotImplementedToolExecutor(toolKey);

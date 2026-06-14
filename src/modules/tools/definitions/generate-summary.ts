@@ -40,8 +40,17 @@ export const generateSummaryConfigSchema = z.object({
 
 export type GenerateSummaryConfig = z.infer<typeof generateSummaryConfigSchema>;
 
+/** Binding-free config values passed to the executor after Story 7.2.4 resolution. */
+export const generateSummaryResolvedConfigSchema = generateSummaryConfigSchema;
+
+export type GenerateSummaryResolvedConfig = z.infer<
+  typeof generateSummaryResolvedConfigSchema
+>;
+
+export const generateSummaryToolKey = "ai.generateSummary@1" as const;
+
 export const generateSummaryTool = defineToolDefinition({
-  key: "ai.generateSummary@1",
+  key: generateSummaryToolKey,
   name: "Generate Summary",
   description: "Create a readable summary from deterministic workflow results.",
   category: "summarize",
