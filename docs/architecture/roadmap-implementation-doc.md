@@ -3116,7 +3116,7 @@ Create the run model, execution engine, status lifecycle, idempotent run creatio
 
 1. Does the execution transport require full context serialization between steps?
 
-## HERE ------ Epic 7.3 — Execution transport and run creation
+## Epic 7.3 — Execution transport and run creation
 
 ### Story 7.3.1 — Define ExecutionTransport interface
 
@@ -3544,7 +3544,7 @@ Make the product usable end-to-end by adding run forms, run lists, run details, 
 
 1. Should the builder show “Publish to run” when a workflow has unsaved draft changes?
 
-## Epic 8.2 — Runs list and run detail
+## HERE ------ Epic 8.2 — Runs list and run detail
 
 ### Story 8.2.1 — Build runs list page
 
