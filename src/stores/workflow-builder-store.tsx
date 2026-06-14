@@ -10,7 +10,9 @@ import { createStore, useStore, type StoreApi } from "zustand";
 
 import type { ToolDiscoveryItem } from "@/contracts/tools/responses";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
+import type { WorkflowRuntimeInput } from "@/contracts/workflows/runtime-inputs";
 import { definitionsEqual } from "@/lib/workflows/definition-equality";
+import { addRuntimeInputToDefinition } from "@/lib/workflows/add-runtime-input";
 import { insertToolNodeIntoDefinition } from "@/lib/workflows/insert-tool-node";
 import {
   updateWorkflowNodeInDefinition,
@@ -32,6 +34,7 @@ export type WorkflowBuilderState = {
   selectedNodeId: string | null;
   pendingSelectNodeId: string | null;
   pendingFocusNodeId: string | null;
+  addRuntimeInput: (input: WorkflowRuntimeInput) => void;
   setDefinition: (definition: WorkflowDefinition) => void;
   commitDefinition: (definition: WorkflowDefinition) => void;
   insertTool: (tool: ToolDiscoveryItem) => void;
@@ -81,6 +84,14 @@ export function createWorkflowBuilderStore(
         selectedNodeId: nodeId,
         pendingSelectNodeId: nodeId,
         pendingFocusNodeId: nodeId,
+      });
+    },
+    addRuntimeInput: (input) => {
+      const definition = addRuntimeInputToDefinition(get().definition, input);
+
+      set({
+        definition,
+        isDirty: !definitionsEqual(definition, get().initialDefinition),
       });
     },
     setSelectedNodeId: (nodeId) => {

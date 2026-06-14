@@ -63,6 +63,13 @@ export {
   type WorkflowStepConfigValue,
 } from "./bindings";
 export {
+  bindableNumberConfigValueSchema,
+  bindableStringConfigValueSchema,
+  isBindableConfigValueSet,
+  type BindableNumberConfigValue,
+  type BindableStringConfigValue,
+} from "./bindable-config";
+export {
   findWorkflowGraphIssues,
   resolveWorkflowExecutionOrder,
   validateWorkflowGraphTopology,

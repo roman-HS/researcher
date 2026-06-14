@@ -20,7 +20,9 @@ import type {
   WorkflowDefinitionValidationSeverity,
 } from "@/contracts/workflows/validation";
 import { findWorkflowGraphValidationIssues } from "@/modules/workflows/graph-validation";
+import { listingSearchToolKey } from "@/contracts/providers/zillow/listing-search";
 import { getToolDefinition, hasToolKey } from "@/modules/tools/registry";
+import { listingSearchConfigStrictSchema } from "@/modules/tools/definitions/listing-search";
 
 import { WorkflowDefinitionValidationError } from "./errors";
 
@@ -88,7 +90,11 @@ function collectToolAndConfigIssues(
     }
 
     const tool = getToolDefinition(node.toolKey);
-    const configResult = tool.configSchema.safeParse(node.config);
+    const configSchema =
+      node.toolKey === listingSearchToolKey
+        ? listingSearchConfigStrictSchema
+        : tool.configSchema;
+    const configResult = configSchema.safeParse(node.config);
 
     if (!configResult.success) {
       for (const configIssue of configResult.error.issues) {
