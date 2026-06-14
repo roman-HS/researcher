@@ -1,8 +1,13 @@
 export const WORKFLOWS_MODULE_ROOT = "workflows" as const;
 
 export {
+  compileValidatedWorkflowDefinition,
   compileWorkflowDefinition,
 } from "./compile-definition";
+export {
+  loadCompiledPlanForPublishedVersion,
+  type PublishedWorkflowVersionSource,
+} from "./load-compiled-plan";
 export {
   createWorkflow,
   type CreateWorkflowContext,

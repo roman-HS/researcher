@@ -5,11 +5,21 @@
  */
 
 export {
+  LEGACY_WORKFLOW_COMPILED_PLAN_VERSION,
   WORKFLOW_COMPILED_PLAN_VERSION,
+  areWorkflowCompiledPlansEquivalent,
+  findWorkflowCompiledPlanIntegrityIssues,
+  isLegacyWorkflowCompiledPlan,
+  legacyWorkflowCompiledPlanSchema,
+  legacyWorkflowCompiledPlanStepSchema,
+  parseLegacyWorkflowCompiledPlan,
   parseWorkflowCompiledPlan,
   workflowCompiledPlanSchema,
   workflowCompiledPlanStepSchema,
+  type LegacyWorkflowCompiledPlan,
+  type LegacyWorkflowCompiledPlanStep,
   type WorkflowCompiledPlan,
+  type WorkflowCompiledPlanIntegrityIssue,
   type WorkflowCompiledPlanStep,
 } from "./compiled-plan";
 export {
