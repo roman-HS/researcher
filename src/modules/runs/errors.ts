@@ -3,6 +3,10 @@ import type { RuntimeInputValidationIssue } from "@/lib/workflows/validate-runti
 
 export type RunLifecycleErrorCode = "invalid_transition" | "invalid_status";
 
+export type ExecutionTransportStartErrorCode =
+  | "transport_unavailable"
+  | "transport_start_failed";
+
 export type RunInputValidationIssue = RuntimeInputValidationIssue;
 
 export type RunStepConfigResolutionIssue = StepConfigResolutionIssue;
@@ -68,4 +72,32 @@ export function isRunStepConfigResolutionError(
   error: unknown,
 ): error is RunStepConfigResolutionError {
   return error instanceof RunStepConfigResolutionError;
+}
+
+export class ExecutionTransportStartError extends Error {
+  override readonly name = "ExecutionTransportStartError";
+
+  readonly code: ExecutionTransportStartErrorCode;
+
+  readonly userMessage: string;
+
+  readonly debug?: Record<string, unknown>;
+
+  constructor(options: {
+    message: string;
+    code: ExecutionTransportStartErrorCode;
+    userMessage: string;
+    debug?: Record<string, unknown>;
+  }) {
+    super(options.message);
+    this.code = options.code;
+    this.userMessage = options.userMessage;
+    this.debug = options.debug;
+  }
+}
+
+export function isExecutionTransportStartError(
+  error: unknown,
+): error is ExecutionTransportStartError {
+  return error instanceof ExecutionTransportStartError;
 }

@@ -10,6 +10,10 @@ export {
   DEFAULT_RAPIDAPI_TIMEOUT_MS,
   RAPIDAPI_CLIENT_NAME,
 } from "./rapidapi";
+export {
+  createVercelWorkflowsExecutionTransportPlaceholder,
+  VERCEL_WORKFLOWS_EXECUTION_TRANSPORT_NAME,
+} from "./vercel-workflows";
 export type {
   CreateRapidApiClientOptions,
   RapidApiClient,

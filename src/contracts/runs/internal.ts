@@ -76,6 +76,12 @@ export {
   type ExecutionLimits,
 } from "@/contracts/runs/execution-limits";
 export {
+  executionTransportStartPayloadSchema,
+  parseExecutionTransportStartPayload,
+  type ExecutionTransport,
+  type ExecutionTransportStartPayload,
+} from "@/contracts/runs/execution-transport";
+export {
   createToolExecutorFailedResult,
   createToolExecutorFatalError,
   createToolExecutorItemError,

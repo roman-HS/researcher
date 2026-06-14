@@ -27,6 +27,12 @@ export {
   type RunStepErrorJson,
 } from "@/contracts/runs/run-error";
 export {
+  executionTransportStartPayloadSchema,
+  parseExecutionTransportStartPayload,
+  type ExecutionTransport,
+  type ExecutionTransportStartPayload,
+} from "@/contracts/runs/execution-transport";
+export {
   applyWorkingSetPatch,
   buildToolExecutorRunContext,
   createDefaultExecutionLimits,

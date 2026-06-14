@@ -4,12 +4,15 @@ export {
   RunInputValidationError,
   RunLifecycleError,
   RunStepConfigResolutionError,
+  ExecutionTransportStartError,
   isRunInputValidationError,
   isRunLifecycleError,
   isRunStepConfigResolutionError,
+  isExecutionTransportStartError,
   type RunInputValidationIssue,
   type RunLifecycleErrorCode,
   type RunStepConfigResolutionIssue,
+  type ExecutionTransportStartErrorCode,
 } from "./errors";
 export {
   assertRunStatusTransition,
@@ -55,3 +58,10 @@ export {
   type WorkflowExecutionState,
   type WorkflowExecutionUsage,
 } from "./execution-context";
+export {
+  createDirectExecutionTransport,
+  createExecutionTransport,
+  DIRECT_EXECUTION_TRANSPORT_NAME,
+  enqueueWorkflowRunExecution,
+  getExecutionTransport,
+} from "./execution-transport";
