@@ -2,6 +2,7 @@ import type { RunErrorJson } from "@/contracts/runs/run-error";
 import type {
   ToolExecutor,
   ToolExecutorFatalError,
+  ToolExecutorItemError,
   ToolExecutorResolvedConfig,
 } from "@/contracts/runs/executors";
 import type { WorkflowCompiledPlanStep } from "@/contracts/workflows/compiled-plan";
@@ -36,6 +37,11 @@ import {
   syncExecutionContextUsage,
   toExecutionLimitFatalError,
 } from "./execution-session";
+import {
+  amendStepOutputSnapshotForPartialResult,
+  buildPartialSummaryWorkingSetPatch,
+  RunPartialResultTracker,
+} from "./partial-result-handling";
 import { parseResolvedStepConfig } from "./resolve-step-config";
 import {
   buildRunStepCompletionSnapshot,
@@ -44,9 +50,10 @@ import {
 
 /**
  * @see Story 7.4.1 — Implement sequential step dispatcher
+ * @see Story 7.4.4 — Add partial-result handling
  */
 
-export type WorkflowRunStepDispatchResult = "succeeded" | "failed";
+export type WorkflowRunStepDispatchResult = "succeeded" | "partial" | "failed";
 
 export type WorkflowRunStepPersistence = {
   createStep(step: WorkflowCompiledPlanStep): Promise<{ stepId: string }>;
@@ -74,7 +81,12 @@ export type WorkflowRunStepPersistence = {
     }
   ): Promise<void>;
   markRunSucceeded(): Promise<void>;
+  markRunPartial(): Promise<void>;
   markRunFailed(error: RunErrorJson): Promise<void>;
+  amendSucceededStepOutput(
+    stepId: string,
+    outputJson: RunStepOutputSnapshot,
+  ): Promise<void>;
 };
 
 export type DispatchWorkflowRunStepsOptions = {
@@ -187,6 +199,9 @@ async function executeCompiledStep(options: {
 }): Promise<{
   result: WorkflowRunStepDispatchResult;
   context: WorkflowExecutionContext;
+  itemErrors: ToolExecutorItemError[];
+  summaryStepId?: string;
+  stepOutput?: RunStepOutputSnapshot;
 }> {
   const context = resetStepUsageCounters(options.context);
   const { step, stepId, persistence, resolveExecutor } = options;
@@ -211,6 +226,7 @@ async function executeCompiledStep(options: {
         persistence,
       }),
       context,
+      itemErrors: [],
     };
   }
 
@@ -229,6 +245,7 @@ async function executeCompiledStep(options: {
           persistence,
         }),
         context,
+        itemErrors: [],
       };
     }
 
@@ -253,6 +270,7 @@ async function executeCompiledStep(options: {
         persistence,
       }),
       context,
+      itemErrors: [],
     };
   }
 
@@ -275,6 +293,7 @@ async function executeCompiledStep(options: {
           persistence,
         }),
         context,
+        itemErrors: [],
       };
     }
 
@@ -287,6 +306,7 @@ async function executeCompiledStep(options: {
         persistence,
       }),
       context,
+      itemErrors: [],
     };
   }
 
@@ -307,6 +327,7 @@ async function executeCompiledStep(options: {
       context: result.workingSetPatch
         ? applyWorkingSetPatch(context, result.workingSetPatch)
         : context,
+      itemErrors: [],
     };
   }
 
@@ -324,9 +345,17 @@ async function executeCompiledStep(options: {
 
   await persistence.markStepSucceeded(stepId, snapshot);
 
+  const summaryStepId =
+    result.workingSetPatch && "summary" in result.workingSetPatch
+      ? stepId
+      : undefined;
+
   return {
     result: "succeeded",
     context: nextContext,
+    itemErrors: result.itemErrors,
+    summaryStepId,
+    stepOutput: snapshot.outputJson,
   };
 }
 
@@ -338,6 +367,9 @@ export async function dispatchWorkflowRunSteps(
   return runWithExecutionSession(initialContext, async () => {
     const resolveExecutor = options.resolveExecutor ?? getExecutor;
     let context = initialContext;
+    const partialTracker = new RunPartialResultTracker();
+    let summaryStepId: string | undefined;
+    let summaryStepOutput: RunStepOutputSnapshot | undefined;
 
     for (
       let stepIndex = 0;
@@ -367,7 +399,43 @@ export async function dispatchWorkflowRunSteps(
         return "failed";
       }
 
+      partialTracker.recordSucceededStep(step, stepResult.itemErrors);
+
+      if (stepResult.summaryStepId) {
+        summaryStepId = stepResult.summaryStepId;
+        summaryStepOutput = stepResult.stepOutput;
+      }
+
       context = withCurrentStepIndex(context, stepIndex + 1);
+    }
+
+    if (partialTracker.shouldMarkRunPartial()) {
+      const partialStats = partialTracker.getStats();
+      const summaryPatch = buildPartialSummaryWorkingSetPatch(
+        context.state.workingSet,
+        partialStats,
+      );
+
+      if (summaryPatch) {
+        context = applyWorkingSetPatch(context, summaryPatch);
+      }
+
+      if (summaryStepId && summaryStepOutput) {
+        const amendedOutput = amendStepOutputSnapshotForPartialResult(
+          summaryStepOutput,
+          partialStats,
+        );
+
+        if (amendedOutput) {
+          await persistence.amendSucceededStepOutput(
+            summaryStepId,
+            amendedOutput,
+          );
+        }
+      }
+
+      await persistence.markRunPartial();
+      return "partial";
     }
 
     await persistence.markRunSucceeded();

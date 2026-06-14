@@ -24,6 +24,7 @@ import { createRunStatusPatch, createRunStepStatusPatch, parseWorkflowRunStatus,
 
 /**
  * @see Story 7.4.1 — Implement sequential step dispatcher
+ * @see Story 7.4.4 — Add partial-result handling
  */
 
 const UNHANDLED_RUN_FAILURE_CODE = "execution_error" as const;
@@ -246,6 +247,56 @@ function createWorkflowRunStepPersistence(
           updatedAt: new Date(),
         })
         .where(eq(workflowRuns.id, runId));
+    },
+
+    async markRunPartial() {
+      const run = await loadRunById(db, runId);
+
+      if (!run) {
+        throw new Error(`Run "${runId}" could not be loaded.`);
+      }
+
+      const patch = createRunStatusPatch(
+        parseWorkflowRunStatus(run.status),
+        "partial",
+      );
+
+      if (!patch) {
+        return;
+      }
+
+      await db
+        .update(workflowRuns)
+        .set({
+          status: patch.status,
+          completedAt: patch.completedAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(workflowRuns.id, runId));
+    },
+
+    async amendSucceededStepOutput(stepId, outputJson) {
+      const runStep = await db.query.workflowRunSteps.findFirst({
+        where: eq(workflowRunSteps.id, stepId),
+      });
+
+      if (!runStep) {
+        throw new Error(`Workflow run step "${stepId}" could not be loaded.`);
+      }
+
+      if (parseWorkflowRunStepStatus(runStep.status) !== "succeeded") {
+        throw new Error(
+          `Workflow run step "${stepId}" cannot be amended unless it succeeded.`,
+        );
+      }
+
+      await db
+        .update(workflowRunSteps)
+        .set({
+          outputJson,
+          updatedAt: new Date(),
+        })
+        .where(eq(workflowRunSteps.id, stepId));
     },
 
     async markRunFailed(error) {

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createToolExecutorFailedResult,
   createToolExecutorFatalError,
+  createToolExecutorItemError,
   createToolExecutorSuccessResult,
   createToolExecutorWarning,
   type ToolExecutor,
@@ -86,7 +87,7 @@ function createPersistenceRecorder(): {
     warningsJson?: unknown;
     inputJson?: unknown;
   }>;
-  runStatus: "running" | "succeeded" | "failed" | null;
+  runStatus: "running" | "succeeded" | "partial" | "failed" | null;
   runError?: unknown;
 } {
   const events: string[] = [];
@@ -99,7 +100,7 @@ function createPersistenceRecorder(): {
     warningsJson?: unknown;
     inputJson?: unknown;
   }> = [];
-  let runStatus: "running" | "succeeded" | "failed" | null = "running";
+  let runStatus: "running" | "succeeded" | "partial" | "failed" | null = "running";
   let runError: unknown;
 
   const persistence: WorkflowRunStepPersistence = {
@@ -143,6 +144,17 @@ function createPersistenceRecorder(): {
     async markRunSucceeded() {
       runStatus = "succeeded";
       events.push("run:succeeded");
+    },
+    async markRunPartial() {
+      runStatus = "partial";
+      events.push("run:partial");
+    },
+    async amendSucceededStepOutput(stepId, outputJson) {
+      const row = stepRows.find((entry) => entry.stepId === stepId);
+      if (row) {
+        row.outputJson = outputJson;
+      }
+      events.push(`amend:${stepId}`);
     },
     async markRunFailed(error) {
       runStatus = "failed";
@@ -390,6 +402,190 @@ describe("dispatchWorkflowRunSteps", () => {
     expect(recorder.runError).toMatchObject({
       code: "execution_limit_exceeded",
       stepNodeId: "step-search",
+    });
+  });
+
+  it("marks the run partial when post-acquisition steps report item errors", async () => {
+    const partialPlan: WorkflowCompiledPlan = {
+      ...compiledPlan,
+      executionOrder: ["step-search", "step-detail", "step-summary"],
+      steps: [
+        compiledPlan.steps[0]!,
+        {
+          nodeId: "step-detail",
+          title: "Property Detail",
+          toolKey: "rapidapi.zillow.propertyDetail@1",
+          executorKey: "rapidapi.zillow.propertyDetail@1",
+          config: {},
+        },
+        compiledPlan.steps[1]!,
+      ],
+    };
+
+    const recorder = createPersistenceRecorder();
+    const searchExecutor = vi.fn<ToolExecutor>(async () =>
+      createToolExecutorSuccessResult({
+        propertyOrder: ["provider:1", "provider:2"],
+        listingsByKey: {},
+      }),
+    );
+    const detailExecutor = vi.fn<ToolExecutor>(async () =>
+      createToolExecutorSuccessResult(
+        {
+          detailsByKey: {
+            "provider:1": {
+              propertyKey: "provider:1",
+              source: {
+                provider: "zillow",
+                externalId: "1",
+                retrievedAt: "2026-01-01T00:00:00.000Z",
+              },
+            },
+          },
+        },
+        {
+          itemErrors: [
+            createToolExecutorItemError(
+              "provider_error",
+              "Property detail could not be fetched.",
+              { propertyKey: "provider:2" },
+            ),
+          ],
+        },
+      ),
+    );
+    const summaryExecutor = vi.fn<ToolExecutor>(async () =>
+      createToolExecutorSuccessResult({
+        summary: {
+          title: "Summary",
+          sections: [],
+          topProperties: [],
+          warnings: [],
+          missingDataNotes: [],
+        },
+      }),
+    );
+
+    const result = await dispatchWorkflowRunSteps(
+      createWorkflowExecutionContext({
+        run: {
+          runId,
+          workspaceId,
+          workflowId,
+          workflowVersionId,
+          userId,
+        },
+        compiledPlan: partialPlan,
+        runtimeInputValues: { searchZip: "98101" },
+        status: "running",
+      }),
+      recorder.persistence,
+      {
+        resolveExecutor: (executorKey) => {
+          if (executorKey === "rapidapi.zillow.searchListings@1") {
+            return searchExecutor;
+          }
+
+          if (executorKey === "rapidapi.zillow.propertyDetail@1") {
+            return detailExecutor;
+          }
+
+          if (executorKey === "ai.generateSummary@1") {
+            return summaryExecutor;
+          }
+
+          throw new ExecutorNotFoundError(executorKey);
+        },
+      },
+    );
+
+    expect(result).toBe("partial");
+    expect(recorder.runStatus).toBe("partial");
+    expect(recorder.events).toEqual([
+      "create:step-search",
+      "running:step-1",
+      "succeeded:step-1",
+      "create:step-detail",
+      "running:step-2",
+      "succeeded:step-2",
+      "create:step-summary",
+      "running:step-3",
+      "succeeded:step-3",
+      "amend:step-3",
+      "run:partial",
+    ]);
+    expect(recorder.stepRows[1]?.outputJson).toMatchObject({
+      itemErrors: [
+        expect.objectContaining({
+          code: "provider_error",
+          propertyKey: "provider:2",
+        }),
+      ],
+    });
+    expect(recorder.stepRows[2]?.outputJson).toMatchObject({
+      workingSetPatch: {
+        summary: {
+          missingDataNotes: [
+            "This run finished with partial data: 1 property-level error across 1 step.",
+          ],
+          warnings: [
+            "Some property enrichments failed; results may be incomplete.",
+          ],
+        },
+      },
+    });
+  });
+
+  it("does not mark the run partial when only the root search step reports item errors", async () => {
+    const recorder = createPersistenceRecorder();
+    const searchExecutor = vi.fn<ToolExecutor>(async () =>
+      createToolExecutorSuccessResult(
+        {
+          propertyOrder: ["provider:1"],
+          listingsByKey: {},
+        },
+        {
+          itemErrors: [
+            createToolExecutorItemError(
+              "listing_normalization_failed",
+              "Could not normalize one listing.",
+            ),
+          ],
+        },
+      ),
+    );
+    const summaryExecutor = vi.fn<ToolExecutor>(async () =>
+      createToolExecutorSuccessResult({
+        summary: {
+          title: "Summary",
+          sections: [],
+          topProperties: [],
+          warnings: [],
+          missingDataNotes: [],
+        },
+      }),
+    );
+
+    const result = await dispatchWorkflowRunSteps(createContext(), recorder.persistence, {
+      resolveExecutor: (executorKey) => {
+        if (executorKey === "rapidapi.zillow.searchListings@1") {
+          return searchExecutor;
+        }
+
+        return summaryExecutor;
+      },
+    });
+
+    expect(result).toBe("succeeded");
+    expect(recorder.runStatus).toBe("succeeded");
+    expect(recorder.events).not.toContain("run:partial");
+    expect(recorder.stepRows[1]?.outputJson).toMatchObject({
+      workingSetPatch: {
+        summary: {
+          missingDataNotes: [],
+          warnings: [],
+        },
+      },
     });
   });
 });
