@@ -11,7 +11,12 @@ import {
   createWorkflowExecutionContext,
 } from "@/contracts/runs/execution-context";
 import { getDb, type DatabaseClient } from "@/db";
-import { workflowRunSteps, workflowRuns } from "@/db/schema/run";
+import {
+  runAreaResults,
+  runPropertyResults,
+  workflowRunSteps,
+  workflowRuns,
+} from "@/db/schema/run";
 import { workflowVersions } from "@/db/schema/workflow";
 import { loadCompiledPlanForPublishedVersion } from "@/modules/workflows/load-compiled-plan";
 
@@ -22,9 +27,15 @@ import {
 import { loadExecutionLimitsFromEnv } from "./load-execution-limits";
 import { createRunStatusPatch, createRunStepStatusPatch, parseWorkflowRunStatus, parseWorkflowRunStepStatus } from "./lifecycle";
 
+import {
+  buildAreaResultRows,
+  buildPropertyResultRows,
+} from "./persist-run-outputs";
+
 /**
  * @see Story 7.4.1 — Implement sequential step dispatcher
  * @see Story 7.4.4 — Add partial-result handling
+ * @see Story 7.4.5 — Persist final run outputs
  */
 
 const UNHANDLED_RUN_FAILURE_CODE = "execution_error" as const;
@@ -223,56 +234,51 @@ function createWorkflowRunStepPersistence(
         .where(eq(workflowRunSteps.id, stepId));
     },
 
-    async markRunSucceeded() {
-      const run = await loadRunById(db, runId);
+    async completeRunWithOutputs(input) {
+      await db.transaction(async (tx) => {
+        const run = await tx.query.workflowRuns.findFirst({
+          where: eq(workflowRuns.id, runId),
+        });
 
-      if (!run) {
-        throw new Error(`Run "${runId}" could not be loaded.`);
-      }
+        if (!run) {
+          throw new Error(`Run "${runId}" could not be loaded.`);
+        }
 
-      const patch = createRunStatusPatch(
-        parseWorkflowRunStatus(run.status),
-        "succeeded",
-      );
+        const patch = createRunStatusPatch(
+          parseWorkflowRunStatus(run.status),
+          input.status,
+        );
 
-      if (!patch) {
-        return;
-      }
+        if (!patch) {
+          return;
+        }
 
-      await db
-        .update(workflowRuns)
-        .set({
-          status: patch.status,
-          completedAt: patch.completedAt,
-          updatedAt: new Date(),
-        })
-        .where(eq(workflowRuns.id, runId));
-    },
+        const propertyRows = buildPropertyResultRows({
+          runId,
+          workingSet: input.workingSet,
+          itemErrorsByPropertyKey: input.itemErrorsByPropertyKey,
+          propertyWarningsByPropertyKey: input.propertyWarningsByPropertyKey,
+        });
+        const areaRows = buildAreaResultRows(runId, input.workingSet);
 
-    async markRunPartial() {
-      const run = await loadRunById(db, runId);
+        if (propertyRows.length > 0) {
+          await tx.insert(runPropertyResults).values(propertyRows);
+        }
 
-      if (!run) {
-        throw new Error(`Run "${runId}" could not be loaded.`);
-      }
+        if (areaRows.length > 0) {
+          await tx.insert(runAreaResults).values(areaRows);
+        }
 
-      const patch = createRunStatusPatch(
-        parseWorkflowRunStatus(run.status),
-        "partial",
-      );
-
-      if (!patch) {
-        return;
-      }
-
-      await db
-        .update(workflowRuns)
-        .set({
-          status: patch.status,
-          completedAt: patch.completedAt,
-          updatedAt: new Date(),
-        })
-        .where(eq(workflowRuns.id, runId));
+        await tx
+          .update(workflowRuns)
+          .set({
+            status: patch.status,
+            completedAt: patch.completedAt,
+            outputSummaryJson: input.workingSet.summary ?? null,
+            updatedAt: new Date(),
+          })
+          .where(eq(workflowRuns.id, runId));
+      });
     },
 
     async amendSucceededStepOutput(stepId, outputJson) {

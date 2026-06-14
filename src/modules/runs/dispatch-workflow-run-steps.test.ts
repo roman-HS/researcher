@@ -89,6 +89,12 @@ function createPersistenceRecorder(): {
   }>;
   runStatus: "running" | "succeeded" | "partial" | "failed" | null;
   runError?: unknown;
+  completedRun?: {
+    status: "succeeded" | "partial";
+    workingSet: unknown;
+    itemErrorsByPropertyKey: unknown;
+    propertyWarningsByPropertyKey: unknown;
+  };
 } {
   const events: string[] = [];
   const stepRows: Array<{
@@ -102,6 +108,14 @@ function createPersistenceRecorder(): {
   }> = [];
   let runStatus: "running" | "succeeded" | "partial" | "failed" | null = "running";
   let runError: unknown;
+  let completedRun:
+    | {
+        status: "succeeded" | "partial";
+        workingSet: unknown;
+        itemErrorsByPropertyKey: unknown;
+        propertyWarningsByPropertyKey: unknown;
+      }
+    | undefined;
 
   const persistence: WorkflowRunStepPersistence = {
     async createStep(step) {
@@ -141,13 +155,10 @@ function createPersistenceRecorder(): {
       }
       events.push(`failed:${stepId}`);
     },
-    async markRunSucceeded() {
-      runStatus = "succeeded";
-      events.push("run:succeeded");
-    },
-    async markRunPartial() {
-      runStatus = "partial";
-      events.push("run:partial");
+    async completeRunWithOutputs(input) {
+      runStatus = input.status;
+      completedRun = input;
+      events.push(`run:complete:${input.status}`);
     },
     async amendSucceededStepOutput(stepId, outputJson) {
       const row = stepRows.find((entry) => entry.stepId === stepId);
@@ -178,6 +189,9 @@ function createPersistenceRecorder(): {
     },
     set runError(value) {
       runError = value;
+    },
+    get completedRun() {
+      return completedRun;
     },
   };
 }
@@ -229,7 +243,7 @@ describe("dispatchWorkflowRunSteps", () => {
       "create:step-summary",
       "running:step-2",
       "succeeded:step-2",
-      "run:succeeded",
+      "run:complete:succeeded",
     ]);
     expect(searchExecutor).toHaveBeenCalledOnce();
     expect(summaryExecutor).toHaveBeenCalledOnce();
@@ -240,6 +254,12 @@ describe("dispatchWorkflowRunSteps", () => {
         message: "No scores.",
       },
     ]);
+    expect(recorder.completedRun?.status).toBe("succeeded");
+    expect(recorder.completedRun?.workingSet).toMatchObject({
+      summary: {
+        title: "Summary",
+      },
+    });
   });
 
   it("stops on fatal executor failure and preserves optional working-set patch", async () => {
@@ -512,7 +532,7 @@ describe("dispatchWorkflowRunSteps", () => {
       "running:step-3",
       "succeeded:step-3",
       "amend:step-3",
-      "run:partial",
+      "run:complete:partial",
     ]);
     expect(recorder.stepRows[1]?.outputJson).toMatchObject({
       itemErrors: [
@@ -532,6 +552,17 @@ describe("dispatchWorkflowRunSteps", () => {
             "Some property enrichments failed; results may be incomplete.",
           ],
         },
+      },
+    });
+    expect(recorder.completedRun).toMatchObject({
+      status: "partial",
+      itemErrorsByPropertyKey: {
+        "provider:2": [
+          expect.objectContaining({
+            code: "provider_error",
+            propertyKey: "provider:2",
+          }),
+        ],
       },
     });
   });
@@ -578,7 +609,7 @@ describe("dispatchWorkflowRunSteps", () => {
 
     expect(result).toBe("succeeded");
     expect(recorder.runStatus).toBe("succeeded");
-    expect(recorder.events).not.toContain("run:partial");
+    expect(recorder.events).not.toContain("run:complete:partial");
     expect(recorder.stepRows[1]?.outputJson).toMatchObject({
       workingSetPatch: {
         summary: {

@@ -4,7 +4,9 @@ import type {
   ToolExecutorFatalError,
   ToolExecutorItemError,
   ToolExecutorResolvedConfig,
+  ToolExecutorWarning,
 } from "@/contracts/runs/executors";
+import type { ExecutionWorkingSet } from "@/contracts/runs/working-set";
 import type { WorkflowCompiledPlanStep } from "@/contracts/workflows/compiled-plan";
 import {
   applyWorkingSetPatch,
@@ -48,9 +50,12 @@ import {
   type RunStepOutputSnapshot,
 } from "./step-output-snapshot";
 
+import { RunOutputAccumulator } from "./persist-run-outputs";
+
 /**
  * @see Story 7.4.1 — Implement sequential step dispatcher
  * @see Story 7.4.4 — Add partial-result handling
+ * @see Story 7.4.5 — Persist final run outputs
  */
 
 export type WorkflowRunStepDispatchResult = "succeeded" | "partial" | "failed";
@@ -80,8 +85,14 @@ export type WorkflowRunStepPersistence = {
       errorJson: ToolExecutorFatalError;
     }
   ): Promise<void>;
-  markRunSucceeded(): Promise<void>;
-  markRunPartial(): Promise<void>;
+  completeRunWithOutputs(input: {
+    workingSet: ExecutionWorkingSet;
+    itemErrorsByPropertyKey: Readonly<
+      Record<string, readonly ToolExecutorItemError[]>
+    >;
+    propertyWarningsByPropertyKey: Readonly<Record<string, readonly string[]>>;
+    status: "succeeded" | "partial";
+  }): Promise<void>;
   markRunFailed(error: RunErrorJson): Promise<void>;
   amendSucceededStepOutput(
     stepId: string,
@@ -200,6 +211,7 @@ async function executeCompiledStep(options: {
   result: WorkflowRunStepDispatchResult;
   context: WorkflowExecutionContext;
   itemErrors: ToolExecutorItemError[];
+  warnings: ToolExecutorWarning[];
   summaryStepId?: string;
   stepOutput?: RunStepOutputSnapshot;
 }> {
@@ -227,6 +239,7 @@ async function executeCompiledStep(options: {
       }),
       context,
       itemErrors: [],
+      warnings: [],
     };
   }
 
@@ -246,6 +259,7 @@ async function executeCompiledStep(options: {
         }),
         context,
         itemErrors: [],
+        warnings: [],
       };
     }
 
@@ -271,6 +285,7 @@ async function executeCompiledStep(options: {
       }),
       context,
       itemErrors: [],
+      warnings: [],
     };
   }
 
@@ -294,6 +309,7 @@ async function executeCompiledStep(options: {
         }),
         context,
         itemErrors: [],
+        warnings: [],
       };
     }
 
@@ -307,6 +323,7 @@ async function executeCompiledStep(options: {
       }),
       context,
       itemErrors: [],
+      warnings: [],
     };
   }
 
@@ -328,6 +345,7 @@ async function executeCompiledStep(options: {
         ? applyWorkingSetPatch(context, result.workingSetPatch)
         : context,
       itemErrors: [],
+      warnings: [],
     };
   }
 
@@ -354,6 +372,7 @@ async function executeCompiledStep(options: {
     result: "succeeded",
     context: nextContext,
     itemErrors: result.itemErrors,
+    warnings: result.warnings,
     summaryStepId,
     stepOutput: snapshot.outputJson,
   };
@@ -368,6 +387,7 @@ export async function dispatchWorkflowRunSteps(
     const resolveExecutor = options.resolveExecutor ?? getExecutor;
     let context = initialContext;
     const partialTracker = new RunPartialResultTracker();
+    const outputAccumulator = new RunOutputAccumulator();
     let summaryStepId: string | undefined;
     let summaryStepOutput: RunStepOutputSnapshot | undefined;
 
@@ -400,6 +420,10 @@ export async function dispatchWorkflowRunSteps(
       }
 
       partialTracker.recordSucceededStep(step, stepResult.itemErrors);
+      outputAccumulator.recordStepOutputs(
+        stepResult.itemErrors,
+        stepResult.warnings,
+      );
 
       if (stepResult.summaryStepId) {
         summaryStepId = stepResult.summaryStepId;
@@ -434,11 +458,23 @@ export async function dispatchWorkflowRunSteps(
         }
       }
 
-      await persistence.markRunPartial();
+      await persistence.completeRunWithOutputs({
+        workingSet: context.state.workingSet,
+        itemErrorsByPropertyKey: outputAccumulator.getItemErrorsByPropertyKey(),
+        propertyWarningsByPropertyKey:
+          outputAccumulator.getPropertyWarningsByPropertyKey(),
+        status: "partial",
+      });
       return "partial";
     }
 
-    await persistence.markRunSucceeded();
+    await persistence.completeRunWithOutputs({
+      workingSet: context.state.workingSet,
+      itemErrorsByPropertyKey: outputAccumulator.getItemErrorsByPropertyKey(),
+      propertyWarningsByPropertyKey:
+        outputAccumulator.getPropertyWarningsByPropertyKey(),
+      status: "succeeded",
+    });
     return "succeeded";
   });
 }
