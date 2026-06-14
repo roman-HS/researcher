@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
+import { WorkflowBuilder } from "@/components/app/workflows/workflow-builder";
 import NonEditableDraft from "@/components/app/workflows/non-editable-draft";
-import { Button } from "@/components/ui/button";
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
 import { isAppError } from "@/lib/api/errors";
 import { buildToolMetadataByKey } from "@/lib/workflows/builder-tool-metadata";
@@ -55,29 +53,13 @@ export default async function WorkflowBuilderPage({
   ]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-4 border-b px-4 py-3 md:px-6">
-        <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold tracking-tight">
-            {workflow.name}
-          </h1>
-          {workflow.description ? (
-            <p className="truncate text-sm text-muted-foreground">
-              {workflow.description}
-            </p>
-          ) : null}
-        </div>
-        <Button asChild variant="outline">
-          <Link href="/workflows">Back to workflows</Link>
-        </Button>
-      </div>
-      <div className="relative min-h-0 flex-1">
-        <WorkflowBuilderCanvas
-          definition={draftDefinition}
-          toolMetadataByKey={toolMetadataByKey}
-          nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
-        />
-      </div>
-    </div>
+    <WorkflowBuilder
+      key={workflow.workflowId}
+      workflowName={workflow.name}
+      workflowDescription={workflow.description}
+      initialDefinition={draftDefinition}
+      toolMetadataByKey={toolMetadataByKey}
+      nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
+    />
   );
 }

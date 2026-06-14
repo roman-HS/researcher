@@ -114,3 +114,37 @@ export function workflowDefinitionToFlow(
 
   return { nodes, edges };
 }
+
+export function flowToWorkflowDefinition(
+  nodes: readonly WorkflowFlowNode[],
+  edges: readonly WorkflowFlowEdge[],
+  baseDefinition: WorkflowDefinition,
+): WorkflowDefinition {
+  const positionsById = new Map(
+    nodes.map((node) => [node.id, node.position]),
+  );
+
+  const updatedNodes = baseDefinition.nodes.map((node) => ({
+    ...node,
+    position: positionsById.get(node.id) ?? node.position,
+  }));
+
+  const workflowEdges: WorkflowEdge[] = edges.map((edge) => {
+    const matchingBase = baseDefinition.edges.find(
+      (baseEdge) =>
+        baseEdge.source === edge.source && baseEdge.target === edge.target,
+    );
+
+    return {
+      source: edge.source,
+      target: edge.target,
+      ...(matchingBase?.id ? { id: matchingBase.id } : {}),
+    };
+  });
+
+  return {
+    ...baseDefinition,
+    nodes: updatedNodes,
+    edges: workflowEdges,
+  };
+}
