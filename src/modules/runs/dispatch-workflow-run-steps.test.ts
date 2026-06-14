@@ -425,6 +425,68 @@ describe("dispatchWorkflowRunSteps", () => {
     });
   });
 
+  it("marks the active step and run failed when step execution throws unexpectedly", async () => {
+    const recorder = createPersistenceRecorder();
+    const invalidResultExecutor = vi.fn<ToolExecutor>(
+      async () =>
+        ({ status: "success" }) as Awaited<ReturnType<ToolExecutor>>,
+    );
+
+    const result = await dispatchWorkflowRunSteps(createContext(), recorder.persistence, {
+      resolveExecutor: () => invalidResultExecutor,
+    });
+
+    expect(result).toBe("failed");
+    expect(recorder.runStatus).toBe("failed");
+    expect(recorder.events).toEqual([
+      "create:step-search",
+      "running:step-1",
+      "failed:step-1",
+      "run:failed",
+    ]);
+    expect(recorder.stepRows[0]?.status).toBe("failed");
+    expect(recorder.runError).toMatchObject({
+      code: "step_execution_failed",
+      stepNodeId: "step-search",
+      toolKey: "rapidapi.zillow.searchListings@1",
+    });
+  });
+
+  it("preserves succeeded step outputs when a later step throws unexpectedly", async () => {
+    const recorder = createPersistenceRecorder();
+    const searchExecutor = vi.fn<ToolExecutor>(async () =>
+      createToolExecutorSuccessResult({
+        propertyOrder: ["provider:1"],
+      }),
+    );
+    const brokenSummaryExecutor = vi.fn<ToolExecutor>(
+      async () =>
+        ({ status: "success" }) as Awaited<ReturnType<ToolExecutor>>,
+    );
+
+    const result = await dispatchWorkflowRunSteps(createContext(), recorder.persistence, {
+      resolveExecutor: (executorKey) => {
+        if (executorKey === "rapidapi.zillow.searchListings@1") {
+          return searchExecutor;
+        }
+
+        return brokenSummaryExecutor;
+      },
+    });
+
+    expect(result).toBe("failed");
+    expect(recorder.stepRows).toHaveLength(2);
+    expect(recorder.stepRows[0]?.status).toBe("succeeded");
+    expect(recorder.stepRows[0]?.outputJson).toMatchObject({
+      workingSetPatch: { propertyOrder: ["provider:1"] },
+    });
+    expect(recorder.stepRows[1]?.status).toBe("failed");
+    expect(recorder.runError).toMatchObject({
+      code: "step_execution_failed",
+      stepNodeId: "step-summary",
+    });
+  });
+
   it("marks the run partial when post-acquisition steps report item errors", async () => {
     const partialPlan: WorkflowCompiledPlan = {
       ...compiledPlan,

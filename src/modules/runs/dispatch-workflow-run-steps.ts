@@ -51,11 +51,17 @@ import {
 } from "./step-output-snapshot";
 
 import { RunOutputAccumulator } from "./persist-run-outputs";
+import {
+  sanitizePersistedRunError,
+  sanitizePersistedStepError,
+  sanitizePersistedStepOutputSnapshot,
+} from "./sanitize-persisted-run-error";
 
 /**
  * @see Story 7.4.1 — Implement sequential step dispatcher
  * @see Story 7.4.4 — Add partial-result handling
  * @see Story 7.4.5 — Persist final run outputs
+ * @see Story 7.4.6 — Implement run failure handling
  */
 
 export type WorkflowRunStepDispatchResult = "succeeded" | "partial" | "failed";
@@ -187,15 +193,18 @@ async function failStepAndRun(options: {
     warnings: options.warnings ?? undefined,
     propertyCount: nextContext.state.workingSet.propertyOrder.length,
   });
+  const sanitizedFatalError = sanitizePersistedStepError(options.fatalError);
 
   await options.persistence.markStepFailed(options.stepId, {
-    outputJson: snapshot.outputJson,
+    outputJson: sanitizePersistedStepOutputSnapshot(snapshot.outputJson),
     warningsJson: snapshot.warningsJson,
-    errorJson: options.fatalError,
+    errorJson: sanitizedFatalError,
   });
 
   await options.persistence.markRunFailed(
-    toRunErrorJson(options.fatalError, options.step)
+    sanitizePersistedRunError(
+      toRunErrorJson(sanitizedFatalError, options.step),
+    ),
   );
 
   return "failed";
@@ -405,13 +414,26 @@ export async function dispatchWorkflowRunSteps(
       }
 
       const { stepId } = await persistence.createStep(step);
-      const stepResult = await executeCompiledStep({
-        context,
-        step,
-        stepId,
-        persistence,
-        resolveExecutor,
-      });
+
+      let stepResult: Awaited<ReturnType<typeof executeCompiledStep>>;
+
+      try {
+        stepResult = await executeCompiledStep({
+          context,
+          step,
+          stepId,
+          persistence,
+          resolveExecutor,
+        });
+      } catch (error) {
+        return await failStepAndRun({
+          context,
+          step,
+          stepId,
+          fatalError: toUnhandledStepFatalError(error),
+          persistence,
+        });
+      }
 
       context = syncExecutionContextUsage(stepResult.context);
 

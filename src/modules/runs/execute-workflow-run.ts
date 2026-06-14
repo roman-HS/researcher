@@ -31,11 +31,17 @@ import {
   buildAreaResultRows,
   buildPropertyResultRows,
 } from "./persist-run-outputs";
+import {
+  sanitizePersistedRunError,
+  sanitizePersistedStepError,
+  sanitizePersistedStepOutputSnapshot,
+} from "./sanitize-persisted-run-error";
 
 /**
  * @see Story 7.4.1 — Implement sequential step dispatcher
  * @see Story 7.4.4 — Add partial-result handling
  * @see Story 7.4.5 — Persist final run outputs
+ * @see Story 7.4.6 — Implement run failure handling
  */
 
 const UNHANDLED_RUN_FAILURE_CODE = "execution_error" as const;
@@ -46,10 +52,12 @@ function toUnhandledRunErrorJson(error: unknown): RunErrorJson {
   const message =
     error instanceof Error ? error.message : "Workflow execution failed.";
 
-  return createToolExecutorFatalError(
-    UNHANDLED_RUN_FAILURE_CODE,
-    "Workflow execution failed unexpectedly.",
-    { debug: { message } },
+  return sanitizePersistedRunError(
+    createToolExecutorFatalError(
+      UNHANDLED_RUN_FAILURE_CODE,
+      "Workflow execution failed unexpectedly.",
+      { debug: { message } },
+    ),
   );
 }
 
@@ -103,7 +111,9 @@ async function markRunFailedIfRunning(
     return;
   }
 
-  const patch = createRunStatusPatch(status, "failed", { error });
+  const patch = createRunStatusPatch(status, "failed", {
+    error: sanitizePersistedRunError(error),
+  });
 
   if (!patch) {
     return;
@@ -214,7 +224,7 @@ function createWorkflowRunStepPersistence(
       const patch = createRunStepStatusPatch(
         parseWorkflowRunStepStatus(runStep.status),
         "failed",
-        { error: snapshot.errorJson },
+        { error: sanitizePersistedStepError(snapshot.errorJson) },
       );
 
       if (!patch) {
@@ -226,7 +236,7 @@ function createWorkflowRunStepPersistence(
         .set({
           status: patch.status,
           completedAt: patch.completedAt,
-          outputJson: snapshot.outputJson,
+          outputJson: sanitizePersistedStepOutputSnapshot(snapshot.outputJson),
           warningsJson: snapshot.warningsJson as Record<string, unknown> | null,
           errorJson: patch.errorJson,
           updatedAt: new Date(),
@@ -306,7 +316,7 @@ function createWorkflowRunStepPersistence(
     },
 
     async markRunFailed(error) {
-      await markRunFailedIfRunning(db, runId, error);
+      await markRunFailedIfRunning(db, runId, sanitizePersistedRunError(error));
     },
   };
 }
@@ -377,6 +387,13 @@ export async function executeWorkflowRun(runId: string): Promise<void> {
       createWorkflowRunStepPersistence(db, runId),
     );
   } catch (error) {
-    await markRunFailedIfRunning(db, runId, toUnhandledRunErrorJson(error));
+    try {
+      await markRunFailedIfRunning(db, runId, toUnhandledRunErrorJson(error));
+    } catch (failureError) {
+      console.error("Failed to mark run as failed after execution error.", {
+        runId,
+        error: failureError,
+      });
+    }
   }
 }
