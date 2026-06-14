@@ -2373,7 +2373,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 Implement the first real tool executors, map RapidAPI/private-Zillow responses into canonical DTOs, and create deterministic internal analysis tools.
 
-## HERE ------ Epic 6.1 — Provider contract confirmation
+## Epic 6.1 — Provider contract confirmation
 
 ### Story 6.1.1 — Confirm private-Zillow listing search contract
 
@@ -2492,7 +2492,7 @@ Implement the first real tool executors, map RapidAPI/private-Zillow responses i
 
 1. Should missing rent estimates fail the property or produce a warning?
 
-## Epic 6.2 — Executor infrastructure
+## HERE ------ Epic 6.2 — Executor infrastructure
 
 ### Story 6.2.1 — Define tool executor interface
 

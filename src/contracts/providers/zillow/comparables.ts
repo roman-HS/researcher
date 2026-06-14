@@ -30,7 +30,7 @@ export type ComparablesProviderId = z.infer<typeof comparablesProviderIdSchema>;
 /**
  * Wire-accurate query params for `comparable_homes`.
  *
- * `byzpid` accepts a Zillow property ID, street address, or Zillow listing URL.
+ * `byzpid` accepts a Zillow property ID
  */
 export const comparablesRequestSchema = z.object({
   byzpid: z.string().min(1),
