@@ -41,6 +41,7 @@ export const workflowToolNodeSchema = z
     kind: z.literal("tool"),
     toolKey: toolKeySchema,
     title: z.string().min(1),
+    notes: z.string().optional(),
     config: workflowStepConfigSchema.default({}),
     position: workflowNodePositionSchema,
   })

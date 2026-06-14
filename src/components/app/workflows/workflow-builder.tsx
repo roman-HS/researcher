@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
-import { WorkflowToolPalette } from "@/components/app/workflows/workflow-tool-palette";
+import { WorkflowBuilderSidebar } from "@/components/app/workflows/workflow-builder-sidebar";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -134,7 +134,10 @@ function WorkflowBuilderShell({
             nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
           />
         </div>
-        <WorkflowToolPalette toolCatalog={initialToolCatalog} />
+        <WorkflowBuilderSidebar
+          toolCatalog={initialToolCatalog}
+          toolMetadataByKey={toolMetadataByKey}
+        />
       </div>
     </div>
   );

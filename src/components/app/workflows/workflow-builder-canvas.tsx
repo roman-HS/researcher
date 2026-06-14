@@ -59,6 +59,10 @@ export function WorkflowBuilderCanvas({
   const clearPendingSelectNodeId = useWorkflowBuilderStore(
     (state) => state.clearPendingSelectNodeId,
   );
+  const selectedNodeId = useWorkflowBuilderStore((state) => state.selectedNodeId);
+  const setSelectedNodeId = useWorkflowBuilderStore(
+    (state) => state.setSelectedNodeId,
+  );
 
   const [hasSelectedNode, setHasSelectedNode] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<
@@ -98,16 +102,12 @@ export function WorkflowBuilderCanvas({
       );
       clearPendingSelectNodeId();
     } else {
-      setNodes((currentNodes) => {
-        const selectedById = new Map(
-          currentNodes.map((node) => [node.id, node.selected ?? false]),
-        );
-
-        return derivedFlow.nodes.map((node) => ({
+      setNodes(
+        derivedFlow.nodes.map((node) => ({
           ...node,
-          selected: selectedById.get(node.id) ?? false,
-        }));
-      });
+          selected: selectedNodeId ? node.id === selectedNodeId : false,
+        })),
+      );
     }
 
     setEdges(derivedFlow.edges);
@@ -116,6 +116,7 @@ export function WorkflowBuilderCanvas({
     derivedFlow.edges,
     derivedFlow.nodes,
     pendingSelectNodeId,
+    selectedNodeId,
     setEdges,
     setNodes,
   ]);
@@ -167,9 +168,20 @@ export function WorkflowBuilderCanvas({
       }
 
       const nodeIds = nodesToDelete.map((node) => node.id);
+
+      if (selectedNodeId && nodeIds.includes(selectedNodeId)) {
+        setSelectedNodeId(null);
+      }
+
       setDefinition(removeNodesFromWorkflowDefinition(definition, nodeIds));
     },
-    [definition, requestDeleteConfirmation, setDefinition],
+    [
+      definition,
+      requestDeleteConfirmation,
+      selectedNodeId,
+      setDefinition,
+      setSelectedNodeId,
+    ],
   );
 
   const handleNodeDragStop = useCallback<OnNodeDrag<WorkflowFlowNode>>(
@@ -227,9 +239,14 @@ export function WorkflowBuilderCanvas({
   const handleSelectionChange = useCallback<OnSelectionChangeFunc>(
     ({ nodes: selectedNodes }) => {
       setHasSelectedNode(selectedNodes.length > 0);
+      setSelectedNodeId(selectedNodes[0]?.id ?? null);
     },
-    [],
+    [setSelectedNodeId],
   );
+
+  const handlePaneClick = useCallback(() => {
+    setSelectedNodeId(null);
+  }, [setSelectedNodeId]);
 
   const handleDeleteSelected = useCallback(() => {
     const selectedNodes = nodes.filter((node) => node.selected);
@@ -289,6 +306,7 @@ export function WorkflowBuilderCanvas({
         onNodeDragStop={handleNodeDragStop}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
+        onPaneClick={handlePaneClick}
         onSelectionChange={handleSelectionChange}
         isValidConnection={handleIsValidConnection}
         onBeforeDelete={handleBeforeDelete}

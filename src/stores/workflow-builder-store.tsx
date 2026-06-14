@@ -12,23 +12,31 @@ import type { ToolDiscoveryItem } from "@/contracts/tools/responses";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
 import { definitionsEqual } from "@/lib/workflows/definition-equality";
 import { insertToolNodeIntoDefinition } from "@/lib/workflows/insert-tool-node";
+import {
+  updateWorkflowNodeInDefinition,
+  type WorkflowNodeCommonPatch,
+} from "@/lib/workflows/update-workflow-node";
 
 /**
  * Per-builder Zustand store. Instantiate once per workflow builder mount.
  *
  * @see Story 5.2.3 — Implement canvas state synchronization
  * @see Story 5.3.2 — Implement step insertion behavior
+ * @see Story 5.3.3 — Build selected-step inspector shell
  */
 
 export type WorkflowBuilderState = {
   definition: WorkflowDefinition;
   initialDefinition: WorkflowDefinition;
   isDirty: boolean;
+  selectedNodeId: string | null;
   pendingSelectNodeId: string | null;
   pendingFocusNodeId: string | null;
   setDefinition: (definition: WorkflowDefinition) => void;
   commitDefinition: (definition: WorkflowDefinition) => void;
   insertTool: (tool: ToolDiscoveryItem) => void;
+  setSelectedNodeId: (nodeId: string | null) => void;
+  updateWorkflowNode: (nodeId: string, patch: WorkflowNodeCommonPatch) => void;
   clearPendingSelectNodeId: () => void;
   clearPendingFocusNodeId: () => void;
 };
@@ -42,6 +50,7 @@ export function createWorkflowBuilderStore(
     definition: initialDefinition,
     initialDefinition,
     isDirty: false,
+    selectedNodeId: null,
     pendingSelectNodeId: null,
     pendingFocusNodeId: null,
     setDefinition: (definition) => {
@@ -55,6 +64,7 @@ export function createWorkflowBuilderStore(
         definition,
         initialDefinition: definition,
         isDirty: false,
+        selectedNodeId: null,
         pendingSelectNodeId: null,
         pendingFocusNodeId: null,
       });
@@ -68,8 +78,24 @@ export function createWorkflowBuilderStore(
       set({
         definition,
         isDirty: !definitionsEqual(definition, get().initialDefinition),
+        selectedNodeId: nodeId,
         pendingSelectNodeId: nodeId,
         pendingFocusNodeId: nodeId,
+      });
+    },
+    setSelectedNodeId: (nodeId) => {
+      set({ selectedNodeId: nodeId });
+    },
+    updateWorkflowNode: (nodeId, patch) => {
+      const definition = updateWorkflowNodeInDefinition(
+        get().definition,
+        nodeId,
+        patch,
+      );
+
+      set({
+        definition,
+        isDirty: !definitionsEqual(definition, get().initialDefinition),
       });
     },
     clearPendingSelectNodeId: () => {
