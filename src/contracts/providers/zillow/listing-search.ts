@@ -17,6 +17,9 @@ export const LISTING_SEARCH_MAX_PAGE = 5 as const;
 
 export const LISTING_SEARCH_RESULTS_PER_PAGE = 200 as const;
 
+/** V1 caps listing search to a single provider page until pagination limits land. */
+export const LISTING_SEARCH_V1_MAX_RESULTS = LISTING_SEARCH_RESULTS_PER_PAGE;
+
 /** V1 workflows search active for-sale listings only. */
 export const listingSearchV1ListingStatus = "For_Sale" as const;
 

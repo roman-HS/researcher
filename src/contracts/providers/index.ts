@@ -39,6 +39,7 @@ export {
   formatListingSearchListPriceRange,
   formatListingSearchLocation,
   LISTING_SEARCH_MAX_PAGE,
+  LISTING_SEARCH_V1_MAX_RESULTS,
   listingSearchEndpointPath,
   listingSearchListingItemSchema,
   listingSearchPropertySchema,

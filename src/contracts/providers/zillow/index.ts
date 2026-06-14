@@ -31,6 +31,7 @@ export {
   formatListingSearchLocation,
   LISTING_SEARCH_MAX_PAGE,
   LISTING_SEARCH_RESULTS_PER_PAGE,
+  LISTING_SEARCH_V1_MAX_RESULTS,
   listingSearchBathroomsFilterSchema,
   listingSearchDaysOnZillowFilterSchema,
   listingSearchEndpointPath,
