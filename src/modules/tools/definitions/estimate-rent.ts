@@ -12,6 +12,15 @@ export const estimateRentConfigSchema = z.object({
 
 export type EstimateRentConfig = z.infer<typeof estimateRentConfigSchema>;
 
+/** Binding-free config values passed to the executor after Story 7.2.4 resolution. */
+export const estimateRentResolvedConfigSchema = z.object({
+  includeRange: z.boolean().default(true),
+});
+
+export type EstimateRentResolvedConfig = z.infer<
+  typeof estimateRentResolvedConfigSchema
+>;
+
 export const estimateRentTool = defineToolDefinition({
   key: "rapidapi.zillow.estimateRent@1",
   name: "Estimate Rent",

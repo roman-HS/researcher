@@ -2492,7 +2492,7 @@ Implement the first real tool executors, map RapidAPI/private-Zillow responses i
 
 1. Should missing rent estimates fail the property or produce a warning?
 
-## HERE ------ Epic 6.2 — Executor infrastructure
+## Epic 6.2 — Executor infrastructure
 
 ### Story 6.2.1 — Define tool executor interface
 
@@ -2705,7 +2705,7 @@ Implement the first real tool executors, map RapidAPI/private-Zillow responses i
 
 1. Should rent estimate be required for metrics calculation, or can metrics mark rent-dependent fields as unavailable?
 
-## Epic 6.4 — Deterministic analysis tool executors
+## HERE ------ Epic 6.4 — Deterministic analysis tool executors
 
 ### Story 6.4.1 — Implement Metrics Calculation executor
 
