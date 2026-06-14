@@ -9,6 +9,7 @@ export const metricReasonCodeSchema = z.enum([
   "missing_property_details",
   "rent_dependent_metric",
   "price_dependent_metric",
+  "cash_flow_disabled",
 ]);
 
 export type MetricReasonCode = z.infer<typeof metricReasonCodeSchema>;

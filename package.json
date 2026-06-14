@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm lint && pnpm typecheck && pnpm build",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:push": "node scripts/db-push.mjs",
     "db:migrate": "pnpm db:push",
@@ -54,6 +55,7 @@
     "prettier": "^3.8.3",
     "shadcn": "^4.10.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }

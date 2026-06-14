@@ -22,8 +22,17 @@ export const calculateMetricsConfigSchema = z.object({
 
 export type CalculateMetricsConfig = z.infer<typeof calculateMetricsConfigSchema>;
 
+/** Binding-free config values passed to the executor after Story 7.2.4 resolution. */
+export const calculateMetricsResolvedConfigSchema = calculateMetricsConfigSchema;
+
+export type CalculateMetricsResolvedConfig = z.infer<
+  typeof calculateMetricsResolvedConfigSchema
+>;
+
+export const calculateMetricsToolKey = "analysis.calculateMetrics@1" as const;
+
 export const calculateMetricsTool = defineToolDefinition({
-  key: "analysis.calculateMetrics@1",
+  key: calculateMetricsToolKey,
   name: "Calculate Metrics",
   description: "Compute investment metrics such as cap rate and cash flow.",
   category: "analyze",
