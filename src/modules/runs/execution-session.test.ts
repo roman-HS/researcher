@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { ExecutionLimits } from "@/contracts/runs/execution-limits";
+import type { RapidApiResult } from "@/integrations/rapidapi/types";
 import {
   createWorkflowExecutionContext,
   DEFAULT_EXECUTION_LIMITS,
@@ -10,8 +11,8 @@ import {
   ExecutionLimitExceededError,
 } from "@/modules/runs/errors";
 
-const request = vi.fn(async () => ({
-  ok: true as const,
+const request = vi.fn(async (): Promise<RapidApiResult<unknown>> => ({
+  ok: true,
   status: 200,
   headers: {},
   data: {},
@@ -19,15 +20,24 @@ const request = vi.fn(async () => ({
   latencyMs: 1,
 }));
 
+let mockRetryConfig = {
+  maxRetries: 0,
+  baseDelayMs: 500,
+};
+
 vi.mock("@/integrations/rapidapi/client", () => ({
+  createRapidApiTransportClient: () => ({
+    name: "rapidapi",
+    request,
+  }),
   createRapidApiClient: () => ({
     name: "rapidapi",
     request,
   }),
-  getRapidApiClient: () => ({
-    name: "rapidapi",
-    request,
-  }),
+}));
+
+vi.mock("@/integrations/rapidapi/load-retry-config", () => ({
+  loadProviderRetryConfigFromEnv: () => mockRetryConfig,
 }));
 
 import {
@@ -134,6 +144,53 @@ describe("execution session limits", () => {
 
       expect(request).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("counts each retry attempt against provider call limits", async () => {
+    mockRetryConfig = {
+      maxRetries: 1,
+      baseDelayMs: 1,
+    };
+    request.mockClear();
+    request
+      .mockResolvedValueOnce({
+        ok: false,
+        kind: "timeout",
+        message: "timed out",
+        endpointName: "test",
+        latencyMs: 1,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: {},
+        data: {},
+        endpointName: "test",
+        latencyMs: 1,
+      });
+
+    const context = createTestContext({
+      limits: {
+        maxProviderCallsPerStep: 2,
+        maxProviderCallsPerRun: 2,
+      },
+    });
+
+    await runWithExecutionSession(context, async () => {
+      const client = getWorkflowRunProviderClient();
+      const result = await client.request({
+        path: "test",
+        endpointName: "test",
+      });
+
+      expect(result.ok).toBe(true);
+      expect(request).toHaveBeenCalledTimes(2);
+    });
+
+    mockRetryConfig = {
+      maxRetries: 0,
+      baseDelayMs: 500,
+    };
   });
 
   it("maps limit errors to fatal executor errors", () => {

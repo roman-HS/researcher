@@ -19,6 +19,12 @@ export type RapidApiRequestOptions = {
   endpointName: string;
 };
 
+export type ProviderRequestRetryMeta = {
+  attemptCount: number;
+  retryCount: number;
+  delayMs: number[];
+};
+
 export type RapidApiSuccessResult<T = unknown> = {
   ok: true;
   status: number;
@@ -26,6 +32,7 @@ export type RapidApiSuccessResult<T = unknown> = {
   data: T;
   endpointName: string;
   latencyMs: number;
+  retryMeta?: ProviderRequestRetryMeta;
 };
 
 export type RapidApiFailureKind = "timeout" | "network" | "http";
@@ -40,6 +47,7 @@ export type RapidApiFailureResult = {
   headers?: RapidApiSafeHeaders;
   body?: unknown;
   bodyText?: string;
+  retryMeta?: ProviderRequestRetryMeta;
 };
 
 export type RapidApiResult<T = unknown> =

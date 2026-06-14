@@ -5,7 +5,9 @@ import type { ToolExecutorFatalError } from "@/contracts/runs/executors";
 import type { WorkflowExecutionUsage } from "@/contracts/runs/execution-context";
 import type { WorkflowExecutionContext } from "@/contracts/runs/execution-context";
 import { createToolExecutorFatalError } from "@/contracts/runs/executors";
-import { createRapidApiClient, getRapidApiClient } from "@/integrations/rapidapi/client";
+import { createRapidApiClient, createRapidApiTransportClient } from "@/integrations/rapidapi/client";
+import { loadProviderRetryConfigFromEnv } from "@/integrations/rapidapi/load-retry-config";
+import { withProviderRetries } from "@/integrations/rapidapi/retry";
 import type { RapidApiClient } from "@/integrations/rapidapi/types";
 
 import {
@@ -18,6 +20,7 @@ import {
  * Run-scoped execution session for limit enforcement during workflow runs.
  *
  * @see Story 7.4.2 — Add execution limits
+ * @see Story 7.4.3 — Add provider retry behavior
  */
 
 type ExecutionSessionState = {
@@ -188,24 +191,27 @@ export function getWorkflowRunProviderClient(): RapidApiClient {
   const session = tryGetExecutionSession();
 
   if (!session) {
-    return getRapidApiClient();
+    return createRapidApiClient();
   }
 
-  const baseClient = createRapidApiClient({
+  const transportClient = createRapidApiTransportClient({
     defaultTimeoutMs: session.limits.perRequestTimeoutMs,
   });
 
-  return {
-    name: baseClient.name,
-    async request(options) {
-      assertAndRecordProviderCall();
+  return withProviderRetries(
+    {
+      name: transportClient.name,
+      async request(options) {
+        assertAndRecordProviderCall();
 
-      return baseClient.request({
-        ...options,
-        timeoutMs: options.timeoutMs ?? session.limits.perRequestTimeoutMs,
-      });
+        return transportClient.request({
+          ...options,
+          timeoutMs: options.timeoutMs ?? session.limits.perRequestTimeoutMs,
+        });
+      },
     },
-  };
+    loadProviderRetryConfigFromEnv(),
+  );
 }
 
 export function syncExecutionContextUsage(

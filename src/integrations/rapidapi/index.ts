@@ -1,7 +1,27 @@
 export {
   createRapidApiClient,
+  createRapidApiTransportClient,
   getRapidApiClient,
 } from "@/integrations/rapidapi/client";
+export {
+  loadProviderRetryConfigFromEnv,
+} from "@/integrations/rapidapi/load-retry-config";
+export {
+  createProviderRetryWarning,
+  getProviderRetryDebugMeta,
+  mergeProviderRetryDebug,
+  PROVIDER_REQUEST_RETRIED_WARNING_CODE,
+} from "@/integrations/rapidapi/provider-request-meta";
+export {
+  computeProviderRetryDelayMs,
+  DEFAULT_PROVIDER_MAX_RETRIES,
+  DEFAULT_PROVIDER_RETRY_BASE_DELAY_MS,
+  DEFAULT_PROVIDER_RETRY_CONFIG,
+  isRetryableProviderErrorCategory,
+  MAX_PROVIDER_RETRY_DELAY_MS,
+  withProviderRetries,
+  type ProviderRetryConfig,
+} from "@/integrations/rapidapi/retry";
 export {
   RapidApiConfigurationError,
   isRapidApiConfigurationError,
@@ -24,4 +44,5 @@ export {
   type RapidApiResult,
   type RapidApiSafeHeaders,
   type RapidApiSuccessResult,
+  type ProviderRequestRetryMeta,
 } from "@/integrations/rapidapi/types";

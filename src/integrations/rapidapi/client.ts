@@ -1,10 +1,12 @@
 import "server-only";
 
 import { resolveRapidApiClientConfig } from "@/integrations/rapidapi/config";
+import { loadProviderRetryConfigFromEnv } from "@/integrations/rapidapi/load-retry-config";
 import {
   extractSafeResponseHeaders,
   parseResponseBody,
 } from "@/integrations/rapidapi/response";
+import { withProviderRetries } from "@/integrations/rapidapi/retry";
 import {
   RAPIDAPI_CLIENT_NAME,
   type CreateRapidApiClientOptions,
@@ -72,7 +74,9 @@ function createHttpFailure(
   };
 }
 
-function createRapidApiClientFromConfig(config: RapidApiClientConfig): RapidApiClient {
+function createRapidApiTransportClientFromConfig(
+  config: RapidApiClientConfig,
+): RapidApiClient {
   return {
     name: RAPIDAPI_CLIENT_NAME,
 
@@ -169,10 +173,19 @@ function createRapidApiClientFromConfig(config: RapidApiClientConfig): RapidApiC
   };
 }
 
+export function createRapidApiTransportClient(
+  options: CreateRapidApiClientOptions = {},
+): RapidApiClient {
+  return createRapidApiTransportClientFromConfig(resolveRapidApiClientConfig(options));
+}
+
 export function createRapidApiClient(
   options: CreateRapidApiClientOptions = {},
 ): RapidApiClient {
-  return createRapidApiClientFromConfig(resolveRapidApiClientConfig(options));
+  return withProviderRetries(
+    createRapidApiTransportClient(options),
+    loadProviderRetryConfigFromEnv(),
+  );
 }
 
 let cachedRapidApiClient: RapidApiClient | undefined;

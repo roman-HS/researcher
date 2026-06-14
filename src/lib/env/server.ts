@@ -34,6 +34,12 @@ const serverEnvSchema = z.object({
     .optional(),
   EXECUTION_PER_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
   EXECUTION_MAX_RUN_DURATION_MS: z.coerce.number().int().positive().optional(),
+  EXECUTION_PROVIDER_MAX_RETRIES: z.coerce.number().int().nonnegative().optional(),
+  EXECUTION_PROVIDER_RETRY_BASE_DELAY_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -60,6 +66,9 @@ function parseServerEnv(): ServerEnv {
       process.env.EXECUTION_MAX_PROVIDER_CALLS_PER_RUN,
     EXECUTION_PER_REQUEST_TIMEOUT_MS: process.env.EXECUTION_PER_REQUEST_TIMEOUT_MS,
     EXECUTION_MAX_RUN_DURATION_MS: process.env.EXECUTION_MAX_RUN_DURATION_MS,
+    EXECUTION_PROVIDER_MAX_RETRIES: process.env.EXECUTION_PROVIDER_MAX_RETRIES,
+    EXECUTION_PROVIDER_RETRY_BASE_DELAY_MS:
+      process.env.EXECUTION_PROVIDER_RETRY_BASE_DELAY_MS,
   });
 
   if (!result.success) {

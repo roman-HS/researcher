@@ -20,6 +20,10 @@ import type { ProviderErrorCategory } from "@/contracts/providers/errors";
 import { isRapidApiConfigurationError } from "@/integrations/rapidapi/errors";
 import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
 import {
+  createProviderRetryWarning,
+  mergeProviderRetryDebug,
+} from "@/integrations/rapidapi/provider-request-meta";
+import {
   getEffectiveListingResultCap,
   getWorkflowRunProviderClient,
 } from "@/modules/runs/execution-session";
@@ -62,6 +66,7 @@ export const executeListingSearch: ToolExecutor = async (input) => {
   const providerRequest = buildListingSearchProviderRequest(parsedConfig.data);
 
   let providerResponse: unknown;
+  let retryWarning: ReturnType<typeof createProviderRetryWarning>;
 
   try {
     const client = getWorkflowRunProviderClient();
@@ -79,17 +84,21 @@ export const executeListingSearch: ToolExecutor = async (input) => {
 
       return createToolExecutorFailedResult(
         createToolExecutorFatalError(fatalCode, providerError.userMessage, {
-          debug: {
-            category: providerError.category,
-            endpointName: providerError.endpointName,
-            statusCode: providerError.statusCode,
-            providerMessage: providerError.providerMessage,
-          },
+          debug: mergeProviderRetryDebug(
+            {
+              category: providerError.category,
+              endpointName: providerError.endpointName,
+              statusCode: providerError.statusCode,
+              providerMessage: providerError.providerMessage,
+            },
+            result,
+          ),
         }),
       );
     }
 
     providerResponse = result.data;
+    retryWarning = createProviderRetryWarning(result, listingSearchEndpointPath);
   } catch (error) {
     if (isRapidApiConfigurationError(error)) {
       return createToolExecutorFailedResult(
@@ -139,7 +148,10 @@ export const executeListingSearch: ToolExecutor = async (input) => {
       propertyOrder: normalized.propertyOrder,
       listingsByKey: normalized.listingsByKey,
     },
-    { itemErrors: normalized.itemErrors },
+    {
+      itemErrors: normalized.itemErrors,
+      ...(retryWarning ? { warnings: [retryWarning] } : {}),
+    },
   );
 };
 

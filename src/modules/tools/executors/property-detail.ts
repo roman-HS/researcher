@@ -16,10 +16,15 @@ import {
   type PropertyKey,
   type ToolExecutor,
   type ToolExecutorItemError,
+  type ToolExecutorWarning,
 } from "@/contracts/runs";
 import { isRapidApiConfigurationError } from "@/integrations/rapidapi/errors";
 import type { RapidApiClient } from "@/integrations/rapidapi/types";
 import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
+import {
+  createProviderRetryWarning,
+  mergeProviderRetryDebug,
+} from "@/integrations/rapidapi/provider-request-meta";
 import {
   getWorkflowRunProviderClient,
   limitEnrichmentTargets,
@@ -58,6 +63,7 @@ type EnrichmentTarget = {
 type EnrichmentOutcome = {
   detail?: PropertyDetail & { propertyKey: PropertyKey };
   itemError?: ToolExecutorItemError;
+  warnings?: ToolExecutorWarning[];
   stopRemaining: boolean;
 };
 
@@ -98,6 +104,7 @@ export const executePropertyDetail: ToolExecutor = async (input) => {
     PropertyDetail & { propertyKey: PropertyKey }
   > = {};
   const itemErrors: ToolExecutorItemError[] = [];
+  const warnings: ToolExecutorWarning[] = [];
 
   let client: RapidApiClient;
 
@@ -133,6 +140,10 @@ export const executePropertyDetail: ToolExecutor = async (input) => {
         itemErrors.push(outcome.itemError);
       }
 
+      if (outcome.warnings) {
+        warnings.push(...outcome.warnings);
+      }
+
       if (outcome.detail) {
         detailsByKey[target.propertyKey] = outcome.detail;
       }
@@ -153,7 +164,7 @@ export const executePropertyDetail: ToolExecutor = async (input) => {
     );
   }
 
-  return createToolExecutorSuccessResult({ detailsByKey }, { itemErrors });
+  return createToolExecutorSuccessResult({ detailsByKey }, { itemErrors, warnings });
 };
 
 function selectEnrichmentTargets(
@@ -223,17 +234,22 @@ async function enrichPropertyTarget(
         providerError.userMessage,
         {
           propertyKey: target.propertyKey,
-          debug: {
-            category: providerError.category,
-            endpointName: providerError.endpointName,
-            statusCode: providerError.statusCode,
-            providerMessage: providerError.providerMessage,
-          },
+          debug: mergeProviderRetryDebug(
+            {
+              category: providerError.category,
+              endpointName: providerError.endpointName,
+              statusCode: providerError.statusCode,
+              providerMessage: providerError.providerMessage,
+            },
+            result,
+          ),
         },
       ),
       stopRemaining: providerError.category === "rate_limited",
     };
   }
+
+  const retryWarning = createProviderRetryWarning(result, propertyDetailEndpointPath);
 
   const parsedResponse = propertyDetailResponseSchema.safeParse(result.data);
 
@@ -274,6 +290,7 @@ async function enrichPropertyTarget(
 
   return {
     detail: normalized.detail,
+    ...(retryWarning ? { warnings: [retryWarning] } : {}),
     stopRemaining: false,
   };
 }

@@ -16,6 +16,7 @@ import {
   type PropertyKey,
   type ToolExecutor,
   type ToolExecutorItemError,
+  type ToolExecutorWarning,
 } from "@/contracts/runs";
 import { isRapidApiConfigurationError } from "@/integrations/rapidapi/errors";
 import type { RapidApiClient } from "@/integrations/rapidapi/types";
@@ -24,6 +25,10 @@ import {
   limitEnrichmentTargets,
 } from "@/modules/runs/execution-session";
 import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
+import {
+  createProviderRetryWarning,
+  mergeProviderRetryDebug,
+} from "@/integrations/rapidapi/provider-request-meta";
 import { normalizeComparablesResponse } from "@/modules/providers/zillow/normalize-comparables";
 import {
   fetchComparablesResolvedConfigSchema,
@@ -57,6 +62,7 @@ type ComparablesTarget = {
 type ComparablesOutcome = {
   comparableSet?: ComparableSet;
   itemErrors: ToolExecutorItemError[];
+  warnings?: ToolExecutorWarning[];
   stopRemaining: boolean;
 };
 
@@ -91,6 +97,7 @@ export const executeFetchComparables: ToolExecutor = async (input) => {
   const retrievedAt = new Date().toISOString();
   const comparablesByKey: Record<PropertyKey, ComparableSet> = {};
   const itemErrors: ToolExecutorItemError[] = [];
+  const warnings: ToolExecutorWarning[] = [];
 
   let client: RapidApiClient;
 
@@ -129,6 +136,10 @@ export const executeFetchComparables: ToolExecutor = async (input) => {
 
       itemErrors.push(...outcome.itemErrors);
 
+      if (outcome.warnings) {
+        warnings.push(...outcome.warnings);
+      }
+
       if (outcome.comparableSet) {
         comparablesByKey[target.propertyKey] = outcome.comparableSet;
       }
@@ -149,7 +160,10 @@ export const executeFetchComparables: ToolExecutor = async (input) => {
     );
   }
 
-  return createToolExecutorSuccessResult({ comparablesByKey }, { itemErrors });
+  return createToolExecutorSuccessResult(
+    { comparablesByKey },
+    { itemErrors, warnings },
+  );
 };
 
 function selectComparablesTargets(
@@ -218,18 +232,23 @@ async function fetchComparablesForTarget(
           providerError.userMessage,
           {
             propertyKey: target.propertyKey,
-            debug: {
-              category: providerError.category,
-              endpointName: providerError.endpointName,
-              statusCode: providerError.statusCode,
-              providerMessage: providerError.providerMessage,
-            },
+            debug: mergeProviderRetryDebug(
+              {
+                category: providerError.category,
+                endpointName: providerError.endpointName,
+                statusCode: providerError.statusCode,
+                providerMessage: providerError.providerMessage,
+              },
+              result,
+            ),
           },
         ),
       ],
       stopRemaining: providerError.category === "rate_limited",
     };
   }
+
+  const retryWarning = createProviderRetryWarning(result, comparablesEndpointPath);
 
   const parsedResponse = comparablesResponseSchema.safeParse(result.data);
 
@@ -260,6 +279,7 @@ async function fetchComparablesForTarget(
   return {
     comparableSet: normalized.comparableSet,
     itemErrors: normalized.itemErrors,
+    ...(retryWarning ? { warnings: [retryWarning] } : {}),
     stopRemaining: false,
   };
 }

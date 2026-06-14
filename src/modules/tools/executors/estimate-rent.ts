@@ -26,6 +26,10 @@ import {
   limitEnrichmentTargets,
 } from "@/modules/runs/execution-session";
 import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
+import {
+  createProviderRetryWarning,
+  mergeProviderRetryDebug,
+} from "@/integrations/rapidapi/provider-request-meta";
 import { normalizeRentEstimateResponse } from "@/modules/providers/zillow/normalize-rent-estimate";
 import {
   estimateRentResolvedConfigSchema,
@@ -230,12 +234,15 @@ async function fetchRentEstimateForTarget(
           providerError.userMessage,
           {
             propertyKey: target.propertyKey,
-            debug: {
-              category: providerError.category,
-              endpointName: providerError.endpointName,
-              statusCode: providerError.statusCode,
-              providerMessage: providerError.providerMessage,
-            },
+            debug: mergeProviderRetryDebug(
+              {
+                category: providerError.category,
+                endpointName: providerError.endpointName,
+                statusCode: providerError.statusCode,
+                providerMessage: providerError.providerMessage,
+              },
+              result,
+            ),
           },
         ),
       ],
@@ -243,6 +250,8 @@ async function fetchRentEstimateForTarget(
       stopRemaining: providerError.category === "rate_limited",
     };
   }
+
+  const retryWarning = createProviderRetryWarning(result, rentEstimateEndpointPath);
 
   const parsedResponse = rentEstimateResponseSchema.safeParse(result.data);
 
@@ -289,6 +298,10 @@ async function fetchRentEstimateForTarget(
   }
 
   const warnings: ToolExecutorWarning[] = [];
+
+  if (retryWarning) {
+    warnings.push(retryWarning);
+  }
 
   if (normalized.missingEstimate) {
     warnings.push(
