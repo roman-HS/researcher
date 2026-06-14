@@ -6,6 +6,7 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
 import { RunPropertyResultDrawer } from "@/components/app/runs/run-property-result-drawer";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -23,12 +24,16 @@ import {
 } from "@/components/ui/table";
 import type { WorkflowRunStatus } from "@/contracts/runs/lifecycle";
 import { isTerminalRunStatus } from "@/contracts/runs/lifecycle";
-import type { RunDetailPropertyResult } from "@/contracts/runs/responses";
+import type { RunDetailAreaResult, RunDetailPropertyResult } from "@/contracts/runs/responses";
 import {
   formatNullableCents,
   formatNullableCurrencyAmount,
 } from "@/lib/format/money";
 import { formatNullableRatioAsPercent } from "@/lib/format/percent";
+import {
+  filterPropertyResultsByArea,
+  formatAreaKeyDisplay,
+} from "@/lib/runs/area-results-panel";
 import {
   DEFAULT_PROPERTY_RESULT_SORT,
   filterPropertyResults,
@@ -44,11 +49,14 @@ import { cn } from "@/lib/utils";
 /**
  * @see Story 8.3.1 — Build property results table
  * @see Story 8.3.2 — Build property detail drawer
+ * @see Story 8.3.3 — Build area results panel
  */
 
 type RunPropertyResultsTableProps = {
   propertyResults: RunDetailPropertyResult[];
   runStatus: WorkflowRunStatus;
+  selectedAreaFilter?: RunDetailAreaResult | null;
+  onClearAreaFilter?: () => void;
 };
 
 type SortableColumn = {
@@ -164,6 +172,8 @@ function SortableHeader({
 export function RunPropertyResultsTable({
   propertyResults,
   runStatus,
+  selectedAreaFilter = null,
+  onClearAreaFilter,
 }: RunPropertyResultsTableProps) {
   const [filter, setFilter] = useState<PropertyResultFilter>("all");
   const [sortKey, setSortKey] = useState<PropertyResultSortKey>(
@@ -178,8 +188,12 @@ export function RunPropertyResultsTable({
 
   const visibleRows = useMemo(() => {
     const filtered = filterPropertyResults(propertyResults, filter);
-    return sortPropertyResults(filtered, sortKey, sortDirection);
-  }, [filter, propertyResults, sortDirection, sortKey]);
+    const areaFiltered = filterPropertyResultsByArea(
+      filtered,
+      selectedAreaFilter,
+    );
+    return sortPropertyResults(areaFiltered, sortKey, sortDirection);
+  }, [filter, propertyResults, selectedAreaFilter, sortDirection, sortKey]);
 
   const selectedPropertyResult = useMemo(() => {
     if (!selectedPropertyResultId) {
@@ -265,6 +279,29 @@ export function RunPropertyResultsTable({
         ) : null}
       </div>
 
+      {selectedAreaFilter ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">
+            Area:{" "}
+            {formatAreaKeyDisplay(
+              selectedAreaFilter.areaKey,
+              selectedAreaFilter.groupingLevel,
+            )}
+          </Badge>
+          {onClearAreaFilter ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2"
+              onClick={onClearAreaFilter}
+            >
+              Clear area filter
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
       {propertyResults.length === 0 ? (
         <EmptyState
           title={
@@ -280,7 +317,11 @@ export function RunPropertyResultsTable({
       ) : visibleRows.length === 0 ? (
         <EmptyState
           title="No matching properties"
-          description="Try a different filter to see property results from this run."
+          description={
+            selectedAreaFilter
+              ? "No properties match the selected area. Clear the area filter or choose a different filter."
+              : "Try a different filter to see property results from this run."
+          }
           className="py-8"
         />
       ) : (

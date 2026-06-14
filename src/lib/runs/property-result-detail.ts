@@ -207,7 +207,7 @@ export function getMetricDisplayItems(
     const metric = metrics[field.key];
     return {
       label: field.label,
-      ...formatMetricValue(metric, field.format),
+      ...formatLaunchMetricValue(metric, field.format),
     };
   });
 }
@@ -251,7 +251,7 @@ export function hasScoreSection(propertyResult: RunDetailPropertyResult): boolea
   return propertyResult.score !== null || propertyResult.totalScore !== null;
 }
 
-function formatMetricValue(
+export function formatLaunchMetricValue(
   metric: MetricValue | undefined,
   format: PropertyResultMetricFieldDefinition["format"],
 ): { value: string; detail: string | null } {

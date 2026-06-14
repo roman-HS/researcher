@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { RunAreaResultsPanel } from "@/components/app/runs/run-area-results-panel";
 import { RunDetailHeader } from "@/components/app/runs/run-detail-header";
 import { RunPropertyResultsTable } from "@/components/app/runs/run-property-results-table";
 import { RunStepTimeline } from "@/components/app/runs/run-step-timeline";
@@ -9,6 +10,7 @@ import { DEFAULT_RUN_POLL_AFTER_MS } from "@/contracts/runs/polling";
 import {
   getRunDetailResponseSchema,
   type GetRunDetailResponse,
+  type RunDetailAreaResult,
 } from "@/contracts/runs/responses";
 import { apiClientGet } from "@/lib/api/browser-client";
 
@@ -16,6 +18,7 @@ import { apiClientGet } from "@/lib/api/browser-client";
  * @see Story 8.2.4 — Add run status polling
  * @see Story 8.3.1 — Build property results table
  * @see Story 8.3.2 — Build property detail drawer
+ * @see Story 8.3.3 — Build area results panel
  */
 
 type RunDetailViewProps = {
@@ -37,10 +40,25 @@ function buildRunDetailPath(runId: string): string {
 
 export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
   const [run, setRun] = useState(initialRun);
+  const [selectedAreaResultId, setSelectedAreaResultId] = useState<string | null>(
+    null,
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pollError, setPollError] = useState(false);
   const inFlightRef = useRef(false);
   const shouldPoll = isActiveRunStatus(run.status);
+
+  const selectedAreaFilter = useMemo(() => {
+    if (!selectedAreaResultId) {
+      return null;
+    }
+
+    return (
+      run.areaResults.find(
+        (areaResult) => areaResult.areaResultId === selectedAreaResultId,
+      ) ?? null
+    );
+  }, [run.areaResults, selectedAreaResultId]);
 
   useEffect(() => {
     if (!shouldPoll) {
@@ -122,6 +140,10 @@ export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
     };
   }, [runId, shouldPoll]);
 
+  function handleAreaSelect(areaResult: RunDetailAreaResult | null) {
+    setSelectedAreaResultId(areaResult?.areaResultId ?? null);
+  }
+
   return (
     <>
       <RunDetailHeader
@@ -148,6 +170,15 @@ export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
       <RunPropertyResultsTable
         propertyResults={run.propertyResults}
         runStatus={run.status}
+        selectedAreaFilter={selectedAreaFilter}
+        onClearAreaFilter={() => {
+          setSelectedAreaResultId(null);
+        }}
+      />
+      <RunAreaResultsPanel
+        areaResults={run.areaResults}
+        selectedAreaFilter={selectedAreaFilter}
+        onAreaSelect={handleAreaSelect}
       />
       <RunStepTimeline steps={run.steps} />
     </>
