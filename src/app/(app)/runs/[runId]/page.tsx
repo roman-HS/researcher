@@ -1,10 +1,33 @@
 import { notFound } from "next/navigation";
 
+import { RunDetailHeader } from "@/components/app/runs/run-detail-header";
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
+import type { GetRunDetailResponse } from "@/contracts/runs/responses";
+import { isAppError } from "@/lib/api/errors";
+import { getRun } from "@/modules/runs";
+import { requireCurrentWorkspace } from "@/modules/workspace";
+
+/**
+ * @see Story 8.2.2 — Build run detail header
+ */
 
 type RunDetailPageProps = {
   params: Promise<{ runId: string }>;
 };
+
+async function loadRunDetail(runId: string): Promise<GetRunDetailResponse> {
+  const workspace = await requireCurrentWorkspace();
+
+  try {
+    return await getRun(runId, { includeStepDetails: false }, { workspace });
+  } catch (error) {
+    if (isAppError(error) && error.code === "not_found") {
+      notFound();
+    }
+
+    throw error;
+  }
+}
 
 export default async function RunDetailPage({ params }: RunDetailPageProps) {
   const { runId } = await params;
@@ -14,14 +37,22 @@ export default async function RunDetailPage({ params }: RunDetailPageProps) {
     notFound();
   }
 
+  const run = await loadRunDetail(parsedRunId.data);
+
   return (
-    <div className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Run detail</h1>
-      <p className="mt-2 text-muted-foreground">
-        Run <span className="font-mono text-sm">{parsedRunId.data}</span> was
-        created successfully. Full run detail views will be added in later
-        stories.
-      </p>
+    <div className="mx-auto w-full max-w-5xl flex-1 overflow-y-auto p-4 md:p-6">
+      <RunDetailHeader
+        status={run.status}
+        workflowId={run.workflowId}
+        workflowName={run.workflowName}
+        workflowVersionNumber={run.workflowVersionNumber}
+        startedAt={run.startedAt}
+        completedAt={run.completedAt}
+        runtimeInputs={run.runtimeInputs}
+        inputValues={run.inputValues}
+        error={run.error}
+        counts={run.counts}
+      />
     </div>
   );
 }
