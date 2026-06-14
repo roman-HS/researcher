@@ -2,16 +2,15 @@ import { z } from "zod";
 
 import { toolKeySchema } from "@/contracts/tools/internal";
 
+import { workflowStepConfigSchema } from "./bindings";
 import {
-  workflowRuntimeInputKeySchema,
   workflowRuntimeInputsSchema,
 } from "./runtime-inputs";
 
 /**
- * Non-HTTP workflow shapes (e.g. definition documents, bindings).
+ * Non-HTTP workflow shapes (e.g. definition documents).
  *
  * @see Story 4.2.1 — Define WorkflowDefinitionSchema
- * @see Story 4.2.3 — Define parameter binding schema
  */
 
 export const WORKFLOW_DEFINITION_VERSION = 1 as const;
@@ -26,44 +25,6 @@ export const workflowNodeIdSchema = z
   );
 
 export type WorkflowNodeId = z.infer<typeof workflowNodeIdSchema>;
-
-export const workflowConstBindingSchema = z
-  .object({
-    kind: z.literal("const"),
-    value: z.unknown(),
-  })
-  .strict();
-
-export const workflowInputBindingSchema = z
-  .object({
-    kind: z.literal("workflowInput"),
-    inputKey: workflowRuntimeInputKeySchema,
-  })
-  .strict();
-
-export const workflowParameterBindingSchema = z.discriminatedUnion("kind", [
-  workflowConstBindingSchema,
-  workflowInputBindingSchema,
-]);
-
-export type WorkflowParameterBinding = z.infer<
-  typeof workflowParameterBindingSchema
->;
-
-export const workflowStepConfigValueSchema = z.union([
-  workflowParameterBindingSchema,
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.null(),
-]);
-
-export const workflowStepConfigSchema = z.record(
-  z.string(),
-  workflowStepConfigValueSchema,
-);
-
-export type WorkflowStepConfig = z.infer<typeof workflowStepConfigSchema>;
 
 export const workflowNodePositionSchema = z
   .object({

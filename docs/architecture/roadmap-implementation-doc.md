@@ -1209,7 +1209,7 @@ Implement the persisted workflow model, immutable workflow versions, workflow de
 
 1. Should each workflow allow only one active draft at a time?
 
-### HERE ------ Story 4.1.3 — Define workflow status and version state rules
+### Story 4.1.3 — Define workflow status and version state rules
 
 **Objective:** Establish the lifecycle for workflows and workflow versions.
 
@@ -1355,7 +1355,7 @@ Implement the persisted workflow model, immutable workflow versions, workflow de
 
 1. Should the builder prevent invalid edges immediately or allow them and explain errors during validation?
 
-### Story 4.2.5 — Implement workflow definition validation service
+### HERE ------ Story 4.2.5 — Implement workflow definition validation service
 
 **Objective:** Create the server-side service that validates workflow definitions.
 
