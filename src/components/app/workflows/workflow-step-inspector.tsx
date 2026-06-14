@@ -38,7 +38,7 @@ export function WorkflowStepInspectorEmptyState() {
       <p className="mt-4 text-sm font-medium text-foreground">
         Select a step to inspect
       </p>
-      <p className="mt-1.5 max-w-[16rem] text-xs leading-relaxed text-muted-foreground">
+      <p className="mt-1.5 max-w-84 text-xs leading-relaxed text-muted-foreground">
         Click a step on the canvas to edit its label, notes, and tool settings.
       </p>
     </div>

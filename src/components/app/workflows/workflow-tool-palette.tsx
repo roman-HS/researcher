@@ -181,7 +181,7 @@ export function WorkflowToolPalette({ toolCatalog }: WorkflowToolPaletteProps) {
   );
 
   return (
-    <aside className="flex h-full min-h-0 w-80 shrink-0 flex-col overflow-hidden border-l border-border/80 bg-muted/20">
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <div className="shrink-0 border-b border-border/60 px-5 py-4">
         <h2 className="text-sm font-semibold tracking-tight">Add a step</h2>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
@@ -196,6 +196,6 @@ export function WorkflowToolPalette({ toolCatalog }: WorkflowToolPaletteProps) {
           ))}
         </div>
       </div>
-    </aside>
+    </div>
   );
 }

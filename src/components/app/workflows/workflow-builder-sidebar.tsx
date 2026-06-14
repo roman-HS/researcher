@@ -19,6 +19,11 @@ type WorkflowBuilderSidebarProps = {
   toolMetadataByKey: Record<string, WorkflowBuilderToolMetadata>;
 };
 
+/**
+ * Right rail width for the tool palette and step inspector (30% wider than w-80 / 20rem).
+ */
+export const WORKFLOW_BUILDER_RAIL_WIDTH_CLASS = "w-[26rem]";
+
 const SIDEBAR_TRANSITION = {
   type: "spring" as const,
   stiffness: 420,
@@ -55,7 +60,9 @@ export function WorkflowBuilderSidebar({
   const showInspector = selectedNodeId !== null;
 
   return (
-    <aside className="relative h-full min-h-0 w-80 shrink-0 overflow-hidden border-l border-border/80 bg-muted/20">
+    <aside
+      className={`relative h-full min-h-0 shrink-0 overflow-hidden border-l border-border/80 bg-muted/20 ${WORKFLOW_BUILDER_RAIL_WIDTH_CLASS}`}
+    >
       <AnimatePresence mode="wait" initial={false}>
         {showInspector ? (
           <motion.div
