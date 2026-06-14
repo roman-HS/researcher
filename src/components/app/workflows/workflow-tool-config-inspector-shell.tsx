@@ -2,6 +2,7 @@
 
 import type { ComponentType } from "react";
 
+import { FetchComparablesInspector } from "@/components/app/workflows/fetch-comparables-inspector";
 import { ListingSearchInspector } from "@/components/app/workflows/listing-search-inspector";
 import { PropertyDetailInspector } from "@/components/app/workflows/property-detail-inspector";
 import { WorkflowToolConfigPlaceholder } from "@/components/app/workflows/workflow-tool-config-placeholder";
@@ -25,6 +26,7 @@ const toolConfigInspectors: Partial<
 > = {
   listingSearch: ListingSearchInspector,
   propertyDetail: PropertyDetailInspector,
+  fetchComparables: FetchComparablesInspector,
 };
 
 type WorkflowToolConfigInspectorShellProps = {

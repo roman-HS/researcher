@@ -82,5 +82,5 @@ export function getMissingUpstreamArtefactMessage(
     return null;
   }
 
-  return `This step requires ${formatArtefactList(tool.accepts).toLowerCase()} from an upstream step, but none were found on this path. Add a Listing Search step before this one.`;
+  return `This step requires ${formatArtefactList(tool.accepts).toLowerCase()} from an upstream step, but none were found on this path.`;
 }
