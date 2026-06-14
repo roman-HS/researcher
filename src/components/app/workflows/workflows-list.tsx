@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 
 import { EmptyState } from "@/components/app/empty-state";
+import { ArchiveWorkflowDialog } from "@/components/app/workflows/archive-workflow-dialog";
 import { CreateWorkflowDialog } from "@/components/app/workflows/create-workflow-dialog";
 import { WorkflowVersionBadges } from "@/components/app/workflows/workflow-version-badges";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ import {
 } from "@/components/ui/table";
 import { workflowStatusLabels } from "@/contracts/workflows/lifecycle";
 import type { WorkflowListItem } from "@/contracts/workflows/responses";
+import { useServerSyncedList } from "@/hooks/use-server-synced-list";
 import { formatDateTime } from "@/lib/format/datetime";
 
 type WorkflowsListProps = {
@@ -50,14 +52,31 @@ function CreateWorkflowButton({ onClick }: CreateWorkflowButtonProps) {
   );
 }
 
-export function WorkflowsList({ items }: WorkflowsListProps) {
+export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState<WorkflowListItem | null>(
+    null,
+  );
+  const { items, removeItem } = useServerSyncedList(
+    serverItems,
+    (workflow) => workflow.workflowId,
+  );
 
   return (
     <>
       <CreateWorkflowDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+      />
+      <ArchiveWorkflowDialog
+        workflow={archiveTarget}
+        open={archiveTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setArchiveTarget(null);
+          }
+        }}
+        onArchived={removeItem}
       />
 
       <div className="space-y-6">
@@ -143,7 +162,10 @@ export function WorkflowsList({ items }: WorkflowsListProps) {
                             <CopyIcon />
                             Duplicate
                           </DropdownMenuItem>
-                          <DropdownMenuItem disabled variant="destructive">
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onSelect={() => setArchiveTarget(workflow)}
+                          >
                             <ArchiveIcon />
                             Archive
                           </DropdownMenuItem>
