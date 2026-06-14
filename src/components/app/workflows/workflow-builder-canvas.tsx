@@ -8,19 +8,30 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
+import { workflowToolNodeTypes } from "@/components/app/workflows/workflow-tool-node";
+import type { WorkflowBuilderToolMetadata } from "@/lib/workflows/builder-tool-metadata";
+import type { WorkflowNodeValidationStatus } from "@/lib/workflows/node-validation-status";
 import type { WorkflowDefinition } from "@/contracts/workflows/internal";
 import { workflowDefinitionToFlow } from "@/lib/workflows/react-flow";
 
 type WorkflowBuilderCanvasProps = {
   definition: WorkflowDefinition;
+  toolMetadataByKey: Record<string, WorkflowBuilderToolMetadata>;
+  nodeValidationStatusByNodeId: Record<string, WorkflowNodeValidationStatus>;
 };
 
 export function WorkflowBuilderCanvas({
   definition,
+  toolMetadataByKey,
+  nodeValidationStatusByNodeId,
 }: WorkflowBuilderCanvasProps) {
   const { nodes, edges } = useMemo(
-    () => workflowDefinitionToFlow(definition),
-    [definition],
+    () =>
+      workflowDefinitionToFlow(definition, {
+        toolMetadataByKey,
+        nodeValidationStatusByNodeId,
+      }),
+    [definition, nodeValidationStatusByNodeId, toolMetadataByKey],
   );
 
   return (
@@ -28,10 +39,15 @@ export function WorkflowBuilderCanvas({
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={workflowToolNodeTypes}
         nodesDraggable={false}
         nodesConnectable={false}
         edgesReconnectable={false}
-        elementsSelectable={false}
+        elementsSelectable
+        nodesFocusable
+        edgesFocusable={false}
+        selectNodesOnDrag={false}
+        multiSelectionKeyCode={null}
         connectOnClick={false}
         deleteKeyCode={null}
         fitView

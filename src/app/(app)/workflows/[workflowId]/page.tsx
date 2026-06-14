@@ -2,12 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
+import NonEditableDraft from "@/components/app/workflows/non-editable-draft";
 import { Button } from "@/components/ui/button";
 import { domainEntityIdSchema } from "@/contracts/domain/primitives";
 import { isAppError } from "@/lib/api/errors";
-import { getWorkflow } from "@/modules/workflows";
+import { buildToolMetadataByKey } from "@/lib/workflows/builder-tool-metadata";
+import { buildNodeValidationStatusByNodeId } from "@/lib/workflows/node-validation-status";
+import { listToolsForDiscovery } from "@/modules/tools";
+import {
+  getWorkflow,
+  validateWorkflowDefinition,
+} from "@/modules/workflows";
 import { requireCurrentWorkspace } from "@/modules/workspace";
-import NonEditableDraft from "@/components/app/workflows/non-editable-draft";
 
 type WorkflowBuilderPageProps = {
   params: Promise<{ workflowId: string }>;
@@ -40,6 +46,14 @@ export default async function WorkflowBuilderPage({
     return <NonEditableDraft workflowName={workflow.name} />;
   }
 
+  const draftDefinition = workflow.draftVersion.definition;
+  const draftValidation = validateWorkflowDefinition(draftDefinition, "draft");
+  const toolMetadataByKey = buildToolMetadataByKey(listToolsForDiscovery());
+  const nodeValidationStatusByNodeId = buildNodeValidationStatusByNodeId([
+    ...draftValidation.errors,
+    ...draftValidation.warnings,
+  ]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center justify-between gap-4 border-b px-4 py-3 md:px-6">
@@ -58,7 +72,11 @@ export default async function WorkflowBuilderPage({
         </Button>
       </div>
       <div className="relative min-h-0 flex-1">
-        <WorkflowBuilderCanvas definition={workflow.draftVersion.definition} />
+        <WorkflowBuilderCanvas
+          definition={draftDefinition}
+          toolMetadataByKey={toolMetadataByKey}
+          nodeValidationStatusByNodeId={nodeValidationStatusByNodeId}
+        />
       </div>
     </div>
   );

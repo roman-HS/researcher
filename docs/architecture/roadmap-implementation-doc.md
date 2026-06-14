@@ -1385,7 +1385,7 @@ Implement the persisted workflow model, immutable workflow versions, workflow de
 
 1. Which validation warnings should block publish, if any?
 
-## HERE ------ Epic 4.3 — Workflow services and APIs
+## Epic 4.3 — Workflow services and APIs
 
 ### Story 4.3.1 — Implement create workflow service
 
@@ -1800,7 +1800,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 1. Should builder URLs include version IDs or always resolve to the current draft?
 
-### Story 5.2.2 — Implement custom workflow node component
+### HERE ------ Story 5.2.2 — Implement custom workflow node component
 
 **Objective:** Display tool steps as product-specific nodes.
 
