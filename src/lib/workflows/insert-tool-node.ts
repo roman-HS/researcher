@@ -12,7 +12,8 @@ import type { WorkflowStepConfig } from "@/contracts/workflows/bindings";
  */
 
 export const INSERT_NODE_ORIGIN = { x: 60, y: 80 } as const;
-export const INSERT_NODE_VERTICAL_GAP = 120;
+/** Space between node origins; sized for w-52 (~208px) cards plus margin. */
+export const INSERT_NODE_HORIZONTAL_GAP = 240;
 
 function toolKeyToNodeIdBase(toolKey: string): string {
   const withoutVersion = toolKey.split("@")[0] ?? toolKey;
@@ -52,13 +53,13 @@ export function computeNextNodePosition(
     return { ...INSERT_NODE_ORIGIN };
   }
 
-  const lowestNode = definition.nodes.reduce((lowest, node) =>
-    node.position.y > lowest.position.y ? node : lowest,
+  const rightmostNode = definition.nodes.reduce((rightmost, node) =>
+    node.position.x > rightmost.position.x ? node : rightmost,
   );
 
   return {
-    x: INSERT_NODE_ORIGIN.x,
-    y: lowestNode.position.y + INSERT_NODE_VERTICAL_GAP,
+    x: rightmostNode.position.x + INSERT_NODE_HORIZONTAL_GAP,
+    y: rightmostNode.position.y,
   };
 }
 

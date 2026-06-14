@@ -25,10 +25,12 @@ export type WorkflowBuilderState = {
   initialDefinition: WorkflowDefinition;
   isDirty: boolean;
   pendingSelectNodeId: string | null;
+  pendingFocusNodeId: string | null;
   setDefinition: (definition: WorkflowDefinition) => void;
   commitDefinition: (definition: WorkflowDefinition) => void;
   insertTool: (tool: ToolDiscoveryItem) => void;
   clearPendingSelectNodeId: () => void;
+  clearPendingFocusNodeId: () => void;
 };
 
 export type WorkflowBuilderStore = StoreApi<WorkflowBuilderState>;
@@ -41,6 +43,7 @@ export function createWorkflowBuilderStore(
     initialDefinition,
     isDirty: false,
     pendingSelectNodeId: null,
+    pendingFocusNodeId: null,
     setDefinition: (definition) => {
       set({
         definition,
@@ -53,6 +56,7 @@ export function createWorkflowBuilderStore(
         initialDefinition: definition,
         isDirty: false,
         pendingSelectNodeId: null,
+        pendingFocusNodeId: null,
       });
     },
     insertTool: (tool) => {
@@ -65,10 +69,14 @@ export function createWorkflowBuilderStore(
         definition,
         isDirty: !definitionsEqual(definition, get().initialDefinition),
         pendingSelectNodeId: nodeId,
+        pendingFocusNodeId: nodeId,
       });
     },
     clearPendingSelectNodeId: () => {
       set({ pendingSelectNodeId: null });
+    },
+    clearPendingFocusNodeId: () => {
+      set({ pendingFocusNodeId: null });
     },
   }));
 }

@@ -17,6 +17,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { WorkflowBuilderCanvasControls } from "@/components/app/workflows/workflow-builder-canvas-controls";
+import { WorkflowBuilderInsertFocus } from "@/components/app/workflows/workflow-builder-insert-focus";
 import { workflowToolNodeTypes } from "@/components/app/workflows/workflow-tool-node";
 import {
   AlertDialog,
@@ -97,7 +98,16 @@ export function WorkflowBuilderCanvas({
       );
       clearPendingSelectNodeId();
     } else {
-      setNodes(derivedFlow.nodes);
+      setNodes((currentNodes) => {
+        const selectedById = new Map(
+          currentNodes.map((node) => [node.id, node.selected ?? false]),
+        );
+
+        return derivedFlow.nodes.map((node) => ({
+          ...node,
+          selected: selectedById.get(node.id) ?? false,
+        }));
+      });
     }
 
     setEdges(derivedFlow.edges);
@@ -264,7 +274,7 @@ export function WorkflowBuilderCanvas({
       workflowNodeHasIncidentEdges(node.id, definition),
     ) ?? false;
 
-const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 0.8 };
+  const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 0.8 };
 
   return (
     <div className="h-full w-full overflow-hidden">
@@ -303,6 +313,7 @@ const DEFAULT_VIEWPORT = { x: 0, y: 0, zoom: 0.8 };
           hasSelectedNode={hasSelectedNode}
           onDeleteSelected={handleDeleteSelected}
         />
+        <WorkflowBuilderInsertFocus />
       </ReactFlow>
 
       <AlertDialog
