@@ -349,4 +349,47 @@ describe("dispatchWorkflowRunSteps", () => {
       stepNodeId: "step-search",
     });
   });
+
+  it("fails when the working set exceeds the listing limit", async () => {
+    const recorder = createPersistenceRecorder();
+    const context = createWorkflowExecutionContext({
+      run: {
+        runId,
+        workspaceId,
+        workflowId,
+        workflowVersionId,
+        userId,
+      },
+      compiledPlan,
+      runtimeInputValues: { searchZip: "98101" },
+      limits: {
+        ...createContext().limits,
+        maxListingCount: 1,
+      },
+      status: "running",
+      workingSet: {
+        version: 1,
+        propertyOrder: ["provider:1", "provider:2"],
+        listingsByKey: {},
+        detailsByKey: {},
+        comparablesByKey: {},
+        rentEstimatesByKey: {},
+        metricsByKey: {},
+        scoresByKey: {},
+        areaAggregatesByKey: {},
+      },
+    });
+
+    const result = await dispatchWorkflowRunSteps(context, recorder.persistence, {
+      resolveExecutor: () => {
+        throw new Error("Executor should not run when listing limit is exceeded.");
+      },
+    });
+
+    expect(result).toBe("failed");
+    expect(recorder.runError).toMatchObject({
+      code: "execution_limit_exceeded",
+      stepNodeId: "step-search",
+    });
+  });
 });

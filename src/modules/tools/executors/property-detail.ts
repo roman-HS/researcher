@@ -18,9 +18,12 @@ import {
   type ToolExecutorItemError,
 } from "@/contracts/runs";
 import { isRapidApiConfigurationError } from "@/integrations/rapidapi/errors";
-import { getRapidApiClient } from "@/integrations/rapidapi/client";
 import type { RapidApiClient } from "@/integrations/rapidapi/types";
 import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
+import {
+  getWorkflowRunProviderClient,
+  limitEnrichmentTargets,
+} from "@/modules/runs/execution-session";
 import { normalizePropertyDetailResponse } from "@/modules/providers/zillow/normalize-property-detail";
 import {
   propertyDetailResolvedConfigSchema,
@@ -80,7 +83,10 @@ export const executePropertyDetail: ToolExecutor = async (input) => {
     );
   }
 
-  const targets = selectEnrichmentTargets(input.workingSet, parsedConfig.data);
+  const targets = limitEnrichmentTargets(
+    selectEnrichmentTargets(input.workingSet, parsedConfig.data),
+    { stepMaxProperties: parsedConfig.data.maxProperties },
+  );
 
   if (targets.length === 0) {
     return createToolExecutorSuccessResult({});
@@ -96,7 +102,7 @@ export const executePropertyDetail: ToolExecutor = async (input) => {
   let client: RapidApiClient;
 
   try {
-    client = getRapidApiClient();
+    client = getWorkflowRunProviderClient();
   } catch (error) {
     if (isRapidApiConfigurationError(error)) {
       return createToolExecutorFailedResult(

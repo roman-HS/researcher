@@ -16,6 +16,24 @@ const serverEnvSchema = z.object({
   RAPIDAPI_KEY: z.string().min(1).optional(),
   RAPIDAPI_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
   EXECUTION_TRANSPORT: executionTransportSchema,
+  EXECUTION_MAX_LISTING_COUNT: z.coerce.number().int().positive().optional(),
+  EXECUTION_MAX_PROPERTIES_ENRICHED_PER_RUN: z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional(),
+  EXECUTION_MAX_PROVIDER_CALLS_PER_STEP: z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional(),
+  EXECUTION_MAX_PROVIDER_CALLS_PER_RUN: z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional(),
+  EXECUTION_PER_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
+  EXECUTION_MAX_RUN_DURATION_MS: z.coerce.number().int().positive().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -33,6 +51,15 @@ function parseServerEnv(): ServerEnv {
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
     RAPIDAPI_TIMEOUT_MS: process.env.RAPIDAPI_TIMEOUT_MS,
     EXECUTION_TRANSPORT: process.env.EXECUTION_TRANSPORT ?? "direct",
+    EXECUTION_MAX_LISTING_COUNT: process.env.EXECUTION_MAX_LISTING_COUNT,
+    EXECUTION_MAX_PROPERTIES_ENRICHED_PER_RUN:
+      process.env.EXECUTION_MAX_PROPERTIES_ENRICHED_PER_RUN,
+    EXECUTION_MAX_PROVIDER_CALLS_PER_STEP:
+      process.env.EXECUTION_MAX_PROVIDER_CALLS_PER_STEP,
+    EXECUTION_MAX_PROVIDER_CALLS_PER_RUN:
+      process.env.EXECUTION_MAX_PROVIDER_CALLS_PER_RUN,
+    EXECUTION_PER_REQUEST_TIMEOUT_MS: process.env.EXECUTION_PER_REQUEST_TIMEOUT_MS,
+    EXECUTION_MAX_RUN_DURATION_MS: process.env.EXECUTION_MAX_RUN_DURATION_MS,
   });
 
   if (!result.success) {

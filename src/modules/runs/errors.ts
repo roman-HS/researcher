@@ -7,6 +7,15 @@ export type ExecutionTransportStartErrorCode =
   | "transport_unavailable"
   | "transport_start_failed";
 
+export type ExecutionLimitName =
+  | "maxListingCount"
+  | "maxPropertiesEnrichedPerRun"
+  | "maxProviderCallsPerStep"
+  | "maxProviderCallsPerRun"
+  | "maxRunDurationMs";
+
+export const EXECUTION_LIMIT_EXCEEDED_CODE = "execution_limit_exceeded" as const;
+
 export type RunInputValidationIssue = RuntimeInputValidationIssue;
 
 export type RunStepConfigResolutionIssue = StepConfigResolutionIssue;
@@ -100,4 +109,31 @@ export function isExecutionTransportStartError(
   error: unknown,
 ): error is ExecutionTransportStartError {
   return error instanceof ExecutionTransportStartError;
+}
+
+export class ExecutionLimitExceededError extends Error {
+  override readonly name = "ExecutionLimitExceededError";
+
+  readonly limit: ExecutionLimitName;
+
+  readonly userMessage: string;
+
+  readonly debug?: Record<string, unknown>;
+
+  constructor(options: {
+    limit: ExecutionLimitName;
+    userMessage: string;
+    debug?: Record<string, unknown>;
+  }) {
+    super(options.userMessage);
+    this.limit = options.limit;
+    this.userMessage = options.userMessage;
+    this.debug = options.debug;
+  }
+}
+
+export function isExecutionLimitExceededError(
+  error: unknown,
+): error is ExecutionLimitExceededError {
+  return error instanceof ExecutionLimitExceededError;
 }

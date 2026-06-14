@@ -5,10 +5,12 @@ import { LISTING_SEARCH_V1_MAX_RESULTS } from "@/contracts/providers/zillow/list
 /**
  * Bounded execution limits carried on a workflow run context.
  *
- * Enforcement is deferred to Story 7.4.2 — Add execution limits.
- *
  * @see Story 7.2.5 — Implement execution context service
+ * @see Story 7.4.2 — Add execution limits
  */
+
+/** Default total run duration for direct in-process execution (10 minutes). */
+export const DEFAULT_EXECUTION_MAX_RUN_DURATION_MS = 600_000 as const;
 
 export const executionLimitsSchema = z
   .object({
@@ -17,6 +19,7 @@ export const executionLimitsSchema = z
     maxProviderCallsPerStep: z.number().int().positive(),
     maxProviderCallsPerRun: z.number().int().positive(),
     perRequestTimeoutMs: z.number().int().positive(),
+    maxRunDurationMs: z.number().int().positive(),
   })
   .strict();
 
@@ -29,6 +32,7 @@ export const DEFAULT_EXECUTION_LIMITS = {
   maxProviderCallsPerStep: 100,
   maxProviderCallsPerRun: 300,
   perRequestTimeoutMs: 30_000,
+  maxRunDurationMs: DEFAULT_EXECUTION_MAX_RUN_DURATION_MS,
 } as const satisfies ExecutionLimits;
 
 export function parseExecutionLimits(value: unknown): ExecutionLimits {

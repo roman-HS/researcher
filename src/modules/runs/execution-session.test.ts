@@ -1,0 +1,179 @@
+import { describe, expect, it, vi } from "vitest";
+
+import type { ExecutionLimits } from "@/contracts/runs/execution-limits";
+import {
+  createWorkflowExecutionContext,
+  DEFAULT_EXECUTION_LIMITS,
+} from "@/modules/runs/execution-context";
+import {
+  EXECUTION_LIMIT_EXCEEDED_CODE,
+  ExecutionLimitExceededError,
+} from "@/modules/runs/errors";
+
+const request = vi.fn(async () => ({
+  ok: true as const,
+  status: 200,
+  headers: {},
+  data: {},
+  endpointName: "test",
+  latencyMs: 1,
+}));
+
+vi.mock("@/integrations/rapidapi/client", () => ({
+  createRapidApiClient: () => ({
+    name: "rapidapi",
+    request,
+  }),
+  getRapidApiClient: () => ({
+    name: "rapidapi",
+    request,
+  }),
+}));
+
+import {
+  assertRunDurationNotExceeded,
+  assertWorkingSetListingCount,
+  getWorkflowRunProviderClient,
+  limitEnrichmentTargets,
+  runWithExecutionSession,
+  toExecutionLimitFatalError,
+} from "@/modules/runs/execution-session";
+
+const runId = "11111111-1111-4111-8111-111111111111";
+
+function createTestContext(
+  overrides: {
+    limits?: Partial<ExecutionLimits>;
+    startedAt?: string;
+  } = {},
+) {
+  return createWorkflowExecutionContext({
+    run: {
+      runId,
+      workspaceId: "22222222-2222-4222-8222-222222222222",
+      workflowId: "33333333-3333-4333-8333-333333333333",
+      workflowVersionId: "44444444-4444-4444-8444-444444444444",
+      userId: "55555555-5555-4555-8555-555555555555",
+      startedAt: overrides.startedAt,
+    },
+    compiledPlan: {
+      planVersion: 2,
+      trigger: { type: "manual" },
+      runtimeInputs: [],
+      executionOrder: [],
+      steps: [],
+    },
+    runtimeInputValues: {},
+    limits: {
+      ...DEFAULT_EXECUTION_LIMITS,
+      ...overrides.limits,
+    },
+    status: "running",
+  });
+}
+
+describe("execution session limits", () => {
+  it("clamps enrichment targets against run and step caps", async () => {
+    const context = createTestContext({
+      limits: {
+        maxPropertiesEnrichedPerRun: 2,
+      },
+    });
+
+    await runWithExecutionSession(context, async () => {
+      expect(
+        limitEnrichmentTargets(["a", "b", "c"], { stepMaxProperties: 3 }),
+      ).toEqual(["a", "b"]);
+      expect(limitEnrichmentTargets([])).toEqual([]);
+      expect(() => limitEnrichmentTargets(["d"])).toThrow(
+        ExecutionLimitExceededError,
+      );
+    });
+  });
+
+  it("throws when enrichment budget is exhausted", async () => {
+    const context = createTestContext({
+      limits: {
+        maxPropertiesEnrichedPerRun: 1,
+      },
+    });
+
+    await expect(
+      runWithExecutionSession(context, async () => {
+        limitEnrichmentTargets(["a"]);
+        limitEnrichmentTargets(["b"]);
+      }),
+    ).rejects.toBeInstanceOf(ExecutionLimitExceededError);
+  });
+
+  it("records provider calls through the wrapped client", async () => {
+    request.mockClear();
+
+    const context = createTestContext({
+      limits: {
+        maxProviderCallsPerStep: 1,
+        maxProviderCallsPerRun: 1,
+      },
+    });
+
+    await runWithExecutionSession(context, async () => {
+      const client = getWorkflowRunProviderClient();
+      await client.request({
+        path: "test",
+        endpointName: "test",
+      });
+
+      await expect(
+        client.request({
+          path: "test",
+          endpointName: "test",
+        }),
+      ).rejects.toMatchObject({
+        limit: "maxProviderCallsPerStep",
+      });
+
+      expect(request).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("maps limit errors to fatal executor errors", () => {
+    const error = new ExecutionLimitExceededError({
+      limit: "maxListingCount",
+      userMessage: "Too many listings.",
+      debug: { propertyCount: 201 },
+    });
+
+    expect(toExecutionLimitFatalError(error)).toEqual({
+      code: EXECUTION_LIMIT_EXCEEDED_CODE,
+      userMessage: "Too many listings.",
+      debug: {
+        limit: "maxListingCount",
+        propertyCount: 201,
+      },
+    });
+  });
+
+  it("asserts listing count and run duration limits", async () => {
+    const listingContext = createTestContext({
+      limits: { maxListingCount: 2 },
+    });
+
+    await runWithExecutionSession(listingContext, async () => {
+      expect(() => assertWorkingSetListingCount(2)).not.toThrow();
+      expect(() => assertWorkingSetListingCount(3)).toThrow(
+        ExecutionLimitExceededError,
+      );
+    });
+
+    const durationContext = createTestContext({
+      limits: { maxRunDurationMs: 1 },
+      startedAt: new Date(Date.now() - 10).toISOString(),
+    });
+
+    await runWithExecutionSession(durationContext, async () => {
+      expect(() => assertRunDurationNotExceeded()).toThrow(
+        ExecutionLimitExceededError,
+      );
+    });
+  });
+});

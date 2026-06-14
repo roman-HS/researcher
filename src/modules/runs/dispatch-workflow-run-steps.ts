@@ -27,7 +27,15 @@ import {
 import {
   isRunStepConfigResolutionError,
   RunStepConfigResolutionError,
+  isExecutionLimitExceededError,
 } from "./errors";
+import {
+  assertRunDurationNotExceeded,
+  assertWorkingSetListingCount,
+  runWithExecutionSession,
+  syncExecutionContextUsage,
+  toExecutionLimitFatalError,
+} from "./execution-session";
 import { parseResolvedStepConfig } from "./resolve-step-config";
 import {
   buildRunStepCompletionSnapshot,
@@ -208,6 +216,25 @@ async function executeCompiledStep(options: {
 
   await persistence.markStepRunning(stepId, resolvedConfig);
 
+  try {
+    assertWorkingSetListingCount(context.state.workingSet.propertyOrder.length);
+  } catch (error) {
+    if (isExecutionLimitExceededError(error)) {
+      return {
+        result: await failStepAndRun({
+          context,
+          step,
+          stepId,
+          fatalError: toExecutionLimitFatalError(error),
+          persistence,
+        }),
+        context,
+      };
+    }
+
+    throw error;
+  }
+
   let executor: ToolExecutor;
 
   try {
@@ -238,6 +265,19 @@ async function executeCompiledStep(options: {
       workingSet: context.state.workingSet,
     });
   } catch (error) {
+    if (isExecutionLimitExceededError(error)) {
+      return {
+        result: await failStepAndRun({
+          context,
+          step,
+          stepId,
+          fatalError: toExecutionLimitFatalError(error),
+          persistence,
+        }),
+        context,
+      };
+    }
+
     return {
       result: await failStepAndRun({
         context,
@@ -293,40 +333,44 @@ async function executeCompiledStep(options: {
 export async function dispatchWorkflowRunSteps(
   initialContext: WorkflowExecutionContext,
   persistence: WorkflowRunStepPersistence,
-  options: DispatchWorkflowRunStepsOptions = {}
+  options: DispatchWorkflowRunStepsOptions = {},
 ): Promise<WorkflowRunStepDispatchResult> {
-  const resolveExecutor = options.resolveExecutor ?? getExecutor;
-  let context = initialContext;
+  return runWithExecutionSession(initialContext, async () => {
+    const resolveExecutor = options.resolveExecutor ?? getExecutor;
+    let context = initialContext;
 
-  for (
-    let stepIndex = 0;
-    stepIndex < context.compiledPlan.steps.length;
-    stepIndex += 1
-  ) {
-    const step = context.compiledPlan.steps[stepIndex];
+    for (
+      let stepIndex = 0;
+      stepIndex < context.compiledPlan.steps.length;
+      stepIndex += 1
+    ) {
+      assertRunDurationNotExceeded();
 
-    if (!step) {
-      throw new Error(`Compiled plan is missing step at index ${stepIndex}.`);
+      const step = context.compiledPlan.steps[stepIndex];
+
+      if (!step) {
+        throw new Error(`Compiled plan is missing step at index ${stepIndex}.`);
+      }
+
+      const { stepId } = await persistence.createStep(step);
+      const stepResult = await executeCompiledStep({
+        context,
+        step,
+        stepId,
+        persistence,
+        resolveExecutor,
+      });
+
+      context = syncExecutionContextUsage(stepResult.context);
+
+      if (stepResult.result === "failed") {
+        return "failed";
+      }
+
+      context = withCurrentStepIndex(context, stepIndex + 1);
     }
 
-    const { stepId } = await persistence.createStep(step);
-    const stepResult = await executeCompiledStep({
-      context,
-      step,
-      stepId,
-      persistence,
-      resolveExecutor,
-    });
-
-    context = stepResult.context;
-
-    if (stepResult.result === "failed") {
-      return "failed";
-    }
-
-    context = withCurrentStepIndex(context, stepIndex + 1);
-  }
-
-  await persistence.markRunSucceeded();
-  return "succeeded";
+    await persistence.markRunSucceeded();
+    return "succeeded";
+  });
 }

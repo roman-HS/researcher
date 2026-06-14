@@ -20,8 +20,11 @@ import {
   type ToolExecutorWarning,
 } from "@/contracts/runs";
 import { isRapidApiConfigurationError } from "@/integrations/rapidapi/errors";
-import { getRapidApiClient } from "@/integrations/rapidapi/client";
 import type { RapidApiClient } from "@/integrations/rapidapi/types";
+import {
+  getWorkflowRunProviderClient,
+  limitEnrichmentTargets,
+} from "@/modules/runs/execution-session";
 import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
 import { normalizeRentEstimateResponse } from "@/modules/providers/zillow/normalize-rent-estimate";
 import {
@@ -85,7 +88,7 @@ export const executeEstimateRent: ToolExecutor = async (input) => {
     );
   }
 
-  const targets = selectRentEstimateTargets(input.workingSet);
+  const targets = limitEnrichmentTargets(selectRentEstimateTargets(input.workingSet));
 
   if (targets.length === 0) {
     return createToolExecutorSuccessResult({});
@@ -99,7 +102,7 @@ export const executeEstimateRent: ToolExecutor = async (input) => {
   let client: RapidApiClient;
 
   try {
-    client = getRapidApiClient();
+    client = getWorkflowRunProviderClient();
   } catch (error) {
     if (isRapidApiConfigurationError(error)) {
       return createToolExecutorFailedResult(

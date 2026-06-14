@@ -16,12 +16,13 @@ import {
   LISTING_SEARCH_V1_MAX_RESULTS,
   type ListingSearchRequest,
 } from "@/contracts/providers/zillow/listing-search";
-import {
-  isRapidApiConfigurationError,
-} from "@/integrations/rapidapi/errors";
-import { getRapidApiClient } from "@/integrations/rapidapi/client";
-import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
 import type { ProviderErrorCategory } from "@/contracts/providers/errors";
+import { isRapidApiConfigurationError } from "@/integrations/rapidapi/errors";
+import { mapRapidApiFailureToProviderError } from "@/integrations/rapidapi/map-failure";
+import {
+  getEffectiveListingResultCap,
+  getWorkflowRunProviderClient,
+} from "@/modules/runs/execution-session";
 import {
   normalizeListingSearchResponse,
 } from "@/modules/providers/zillow/normalize-listing-search";
@@ -63,7 +64,7 @@ export const executeListingSearch: ToolExecutor = async (input) => {
   let providerResponse: unknown;
 
   try {
-    const client = getRapidApiClient();
+    const client = getWorkflowRunProviderClient();
     const result = await client.request({
       path: listingSearchEndpointPath,
       method: "GET",
@@ -117,7 +118,7 @@ export const executeListingSearch: ToolExecutor = async (input) => {
 
   const retrievedAt = new Date().toISOString();
   const normalized = normalizeListingSearchResponse(parsedResponse.data, {
-    maxResults: LISTING_SEARCH_V1_MAX_RESULTS,
+    maxResults: getEffectiveListingResultCap(LISTING_SEARCH_V1_MAX_RESULTS),
     retrievedAt,
   });
 

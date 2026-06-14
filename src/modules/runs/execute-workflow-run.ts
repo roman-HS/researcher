@@ -19,6 +19,7 @@ import {
   dispatchWorkflowRunSteps,
   type WorkflowRunStepPersistence,
 } from "./dispatch-workflow-run-steps";
+import { loadExecutionLimitsFromEnv } from "./load-execution-limits";
 import { createRunStatusPatch, createRunStepStatusPatch, parseWorkflowRunStatus, parseWorkflowRunStepStatus } from "./lifecycle";
 
 /**
@@ -299,6 +300,7 @@ async function loadExecutionContextForRun(
     },
     compiledPlan,
     runtimeInputValues,
+    limits: loadExecutionLimitsFromEnv(),
     status: "running",
   });
 }
