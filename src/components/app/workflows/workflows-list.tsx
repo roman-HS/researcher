@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   ArchiveIcon,
   CopyIcon,
@@ -9,6 +9,7 @@ import {
   PlusIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/app/empty-state";
 import { ArchiveWorkflowDialog } from "@/components/app/workflows/archive-workflow-dialog";
@@ -34,6 +35,7 @@ import { workflowStatusLabels } from "@/contracts/workflows/lifecycle";
 import type { WorkflowListItem } from "@/contracts/workflows/responses";
 import { useServerSyncedList } from "@/hooks/use-server-synced-list";
 import { formatDateTime } from "@/lib/format/datetime";
+import { duplicateWorkflowAction } from "@/modules/workflows/actions";
 
 type WorkflowsListProps = {
   items: WorkflowListItem[];
@@ -57,10 +59,28 @@ export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
   const [archiveTarget, setArchiveTarget] = useState<WorkflowListItem | null>(
     null,
   );
+  const [duplicatingWorkflowId, setDuplicatingWorkflowId] = useState<
+    string | null
+  >(null);
+  const [isDuplicatePending, startDuplicateTransition] = useTransition();
   const { items, removeItem } = useServerSyncedList(
     serverItems,
     (workflow) => workflow.workflowId,
   );
+
+  function handleDuplicate(workflow: WorkflowListItem) {
+    setDuplicatingWorkflowId(workflow.workflowId);
+
+    startDuplicateTransition(async () => {
+      const result = await duplicateWorkflowAction(workflow.workflowId);
+
+      setDuplicatingWorkflowId(null);
+
+      if (!result.ok) {
+        toast.error(result.error);
+      }
+    });
+  }
 
   return (
     <>
@@ -113,8 +133,16 @@ export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((workflow) => (
-                <TableRow key={workflow.workflowId}>
+              {items.map((workflow) => {
+                const isDuplicating =
+                  duplicatingWorkflowId === workflow.workflowId &&
+                  isDuplicatePending;
+
+                return (
+                <TableRow
+                  key={workflow.workflowId}
+                  aria-busy={isDuplicating}
+                >
                   <TableCell className="max-w-48 font-medium">
                     <span className="line-clamp-2">{workflow.name}</span>
                   </TableCell>
@@ -141,7 +169,12 @@ export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
-                      <Button asChild variant="outline" size="sm">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        disabled={isDuplicating}
+                      >
                         <Link href={`/workflows/${workflow.workflowId}`}>
                           <PencilIcon data-icon="inline-start" />
                           Edit
@@ -152,18 +185,23 @@ export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
                           <Button
                             variant="ghost"
                             size="icon-sm"
+                            disabled={isDuplicating}
                             aria-label={`More actions for ${workflow.name}`}
                           >
                             <MoreHorizontalIcon />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem disabled>
+                          <DropdownMenuItem
+                            disabled={isDuplicating}
+                            onSelect={() => handleDuplicate(workflow)}
+                          >
                             <CopyIcon />
-                            Duplicate
+                            {isDuplicating ? "Duplicating…" : "Duplicate"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             variant="destructive"
+                            disabled={isDuplicating}
                             onSelect={() => setArchiveTarget(workflow)}
                           >
                             <ArchiveIcon />
@@ -174,7 +212,8 @@ export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         )}

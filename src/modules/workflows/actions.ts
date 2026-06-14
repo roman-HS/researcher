@@ -11,6 +11,7 @@ import { requireCurrentWorkspace } from "@/modules/workspace";
 
 import { archiveWorkflow } from "./archive-workflow";
 import { createWorkflow } from "./create-workflow";
+import { duplicateWorkflow } from "./duplicate-workflow";
 import { isWorkflowLifecycleError } from "./errors";
 import { formatWorkflowFieldErrors } from "./schemas";
 
@@ -23,8 +24,11 @@ export type ArchiveWorkflowActionResult =
   | { ok: true }
   | { ok: false; error: string };
 
+export type DuplicateWorkflowActionResult = { ok: false; error: string };
+
 const CREATE_WORKFLOW_FAILURE_MESSAGE = "Could not create workflow.";
 const ARCHIVE_WORKFLOW_FAILURE_MESSAGE = "Could not archive workflow.";
+const DUPLICATE_WORKFLOW_FAILURE_MESSAGE = "Could not duplicate workflow.";
 
 function extractAppErrorFieldErrors(
   error: AppError,
@@ -60,6 +64,14 @@ function toArchiveActionError(error: unknown): string {
   }
 
   return ARCHIVE_WORKFLOW_FAILURE_MESSAGE;
+}
+
+function toDuplicateActionError(error: unknown): string {
+  if (isAppError(error) || isWorkflowLifecycleError(error)) {
+    return error.message;
+  }
+
+  return DUPLICATE_WORKFLOW_FAILURE_MESSAGE;
 }
 
 export async function archiveWorkflowAction(
@@ -117,4 +129,28 @@ export async function createWorkflowAction(
   }
 
   redirect(`/workflows/${workflowId}`);
+}
+
+export async function duplicateWorkflowAction(
+  workflowId: string,
+): Promise<DuplicateWorkflowActionResult> {
+  const parsedWorkflowId = domainEntityIdSchema.safeParse(workflowId);
+
+  if (!parsedWorkflowId.success) {
+    return { ok: false, error: "Invalid workflow." };
+  }
+
+  let newWorkflowId: string;
+
+  try {
+    const user = await requireUser();
+    const workspace = await requireCurrentWorkspace();
+    const result = await duplicateWorkflow(parsedWorkflowId.data, {}, { user, workspace });
+    newWorkflowId = result.workflowId;
+  } catch (error) {
+    return { ok: false, error: toDuplicateActionError(error) };
+  }
+
+  revalidatePath("/workflows");
+  redirect(`/workflows/${newWorkflowId}`);
 }
