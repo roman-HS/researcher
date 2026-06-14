@@ -137,6 +137,7 @@ export const areaAggregateSchema = z.object({
   minimumSampleSize: z.number().int().nonnegative(),
   meetsMinimumSample: z.boolean(),
   ...launchMetricFields,
+  metricMedians: z.record(z.string().min(1), metricValueSchema).optional(),
   warnings: z.array(z.string()).optional(),
   rank: z.number().int().positive().optional(),
 });

@@ -39,8 +39,17 @@ export const aggregateAreaConfigSchema = z.object({
 
 export type AggregateAreaConfig = z.infer<typeof aggregateAreaConfigSchema>;
 
+/** Binding-free config values passed to the executor after Story 7.2.4 resolution. */
+export const aggregateAreaResolvedConfigSchema = aggregateAreaConfigSchema;
+
+export type AggregateAreaResolvedConfig = z.infer<
+  typeof aggregateAreaResolvedConfigSchema
+>;
+
+export const aggregateAreaToolKey = "analysis.aggregateArea@1" as const;
+
 export const aggregateAreaTool = defineToolDefinition({
-  key: "analysis.aggregateArea@1",
+  key: aggregateAreaToolKey,
   name: "Aggregate Area",
   description: "Roll up property results into area-level investment summaries.",
   category: "analyze",
