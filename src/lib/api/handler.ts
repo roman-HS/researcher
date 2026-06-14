@@ -14,6 +14,10 @@ import {
 import { isUnauthorizedError } from "@/modules/auth/errors";
 import { requireUser, type CurrentUser } from "@/modules/auth/session";
 import {
+  isWorkflowDefinitionValidationError,
+  isWorkflowLifecycleError,
+} from "@/modules/workflows/errors";
+import {
   isForbiddenError,
   requireWorkspaceMember,
   requireWorkspaceOwner,
@@ -260,6 +264,21 @@ function mapThrownError(error: unknown): Response {
     return apiErrorResponse(error.code, error.message, {
       details: error.details,
       retryAfterSeconds: error.retryAfterSeconds,
+    });
+  }
+
+  if (isWorkflowLifecycleError(error)) {
+    return apiErrorResponse("conflict", error.message, {
+      details: { code: error.code },
+    });
+  }
+
+  if (isWorkflowDefinitionValidationError(error)) {
+    return apiErrorResponse("invalid_workflow_definition", error.message, {
+      details: {
+        errors: [...error.errors],
+        warnings: [...error.warnings],
+      },
     });
   }
 
