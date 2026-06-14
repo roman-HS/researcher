@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { WorkflowBuilderCanvas } from "@/components/app/workflows/workflow-builder-canvas";
 import { WorkflowBuilderActionsMenu } from "@/components/app/workflows/workflow-builder-actions-menu";
 import { WorkflowBuilderPublishButton } from "@/components/app/workflows/workflow-builder-publish-button";
+import { WorkflowRunButton } from "@/components/app/workflows/workflow-run-button";
 import { WorkflowBuilderSaveDraftButton } from "@/components/app/workflows/workflow-builder-save-draft-button";
 import { WorkflowBuilderSidebar } from "@/components/app/workflows/workflow-builder-sidebar";
 import { WorkflowBuilderValidationPanel } from "@/components/app/workflows/workflow-builder-validation-panel";
@@ -245,6 +246,13 @@ function WorkflowBuilderShell({
             isSaving={isSaving}
             onPublishValidationErrors={handlePublishValidationErrors}
             onPublishSuccess={onPublishSuccess}
+          />
+          <WorkflowRunButton
+            workflowId={workflowId}
+            publishedVersionNumber={
+              versionState.publishedVersion?.versionNumber ?? null
+            }
+            hasUnsavedDraftChanges={isDirty}
           />
           <WorkflowBuilderActionsMenu
             workflowId={workflowId}

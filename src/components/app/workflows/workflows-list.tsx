@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/app/empty-state";
 import { ArchiveWorkflowDialog } from "@/components/app/workflows/archive-workflow-dialog";
 import { CreateWorkflowDialog } from "@/components/app/workflows/create-workflow-dialog";
+import { WorkflowRunButton } from "@/components/app/workflows/workflow-run-button";
 import { WorkflowVersionBadges } from "@/components/app/workflows/workflow-version-badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -176,6 +177,14 @@ export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1">
+                      <WorkflowRunButton
+                        workflowId={workflow.workflowId}
+                        publishedVersionNumber={
+                          workflow.publishedVersion?.versionNumber ?? null
+                        }
+                        size="sm"
+                        disabled={isDuplicating}
+                      />
                       <Button
                         asChild
                         variant="outline"
