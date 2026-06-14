@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
@@ -13,14 +13,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import type { WorkflowListItem } from "@/contracts/workflows/responses";
 import { archiveWorkflowAction } from "@/modules/workflows/actions";
 
+export type ArchiveWorkflowTarget = {
+  workflowId: string;
+  name: string;
+};
+
 type ArchiveWorkflowDialogProps = {
-  workflow: WorkflowListItem | null;
+  workflow: ArchiveWorkflowTarget | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onArchived: (workflowId: string) => void;
+  hasUnsavedChanges?: boolean;
+  onPendingChange?: (isPending: boolean) => void;
 };
 
 export function ArchiveWorkflowDialog({
@@ -28,8 +34,14 @@ export function ArchiveWorkflowDialog({
   open,
   onOpenChange,
   onArchived,
+  hasUnsavedChanges = false,
+  onPendingChange,
 }: ArchiveWorkflowDialogProps) {
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    onPendingChange?.(isPending);
+  }, [isPending, onPendingChange]);
 
   function handleArchive() {
     if (!workflow) {
@@ -65,6 +77,12 @@ export function ArchiveWorkflowDialog({
                 will be removed from your active workflows. You will no longer be able
                 to edit or run it. Published snapshots are kept, and this cannot be
                 undone in V1.
+                {hasUnsavedChanges ? (
+                  <>
+                    {" "}
+                    You also have unsaved changes that will be lost.
+                  </>
+                ) : null}
               </>
             ) : (
               "This workflow will be removed from your active workflows."

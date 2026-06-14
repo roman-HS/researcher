@@ -89,7 +89,14 @@ export function WorkflowsList({ items: serverItems }: WorkflowsListProps) {
         onOpenChange={setCreateDialogOpen}
       />
       <ArchiveWorkflowDialog
-        workflow={archiveTarget}
+        workflow={
+          archiveTarget
+            ? {
+                workflowId: archiveTarget.workflowId,
+                name: archiveTarget.name,
+              }
+            : null
+        }
         open={archiveTarget !== null}
         onOpenChange={(open) => {
           if (!open) {

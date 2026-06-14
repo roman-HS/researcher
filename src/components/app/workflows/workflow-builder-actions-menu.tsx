@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CopyIcon, MoreHorizontalIcon } from "lucide-react";
+import { ArchiveIcon, CopyIcon, MoreHorizontalIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { ArchiveWorkflowDialog } from "@/components/app/workflows/archive-workflow-dialog";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -24,28 +26,32 @@ import { duplicateWorkflowAction } from "@/modules/workflows/actions";
 import { useWorkflowBuilderStore } from "@/stores/workflow-builder-store";
 
 /**
- * Duplicate control for the workflow builder header overflow menu.
+ * Lifecycle actions for the workflow builder header overflow menu.
  *
  * @see Story 5.4.4 — Add builder duplicate action
+ * @see Story 5.4.5 — Add builder archive action
  */
 
-type WorkflowBuilderDuplicateMenuProps = {
+type WorkflowBuilderActionsMenuProps = {
   workflowId: string;
   workflowName: string;
   isSaving: boolean;
 };
 
-export function WorkflowBuilderDuplicateMenu({
+export function WorkflowBuilderActionsMenu({
   workflowId,
   workflowName,
   isSaving,
-}: WorkflowBuilderDuplicateMenuProps) {
+}: WorkflowBuilderActionsMenuProps) {
+  const router = useRouter();
   const isDirty = useWorkflowBuilderStore((state) => state.isDirty);
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [duplicateConfirmOpen, setDuplicateConfirmOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const [isDuplicatePending, startDuplicateTransition] = useTransition();
 
   const isDuplicating = isDuplicatePending;
-  const disabled = isSaving || isDuplicating;
+  const disabled = isSaving || isDuplicating || isArchiving;
 
   function runDuplicate() {
     startDuplicateTransition(async () => {
@@ -63,7 +69,7 @@ export function WorkflowBuilderDuplicateMenu({
     }
 
     if (isDirty) {
-      setConfirmOpen(true);
+      setDuplicateConfirmOpen(true);
       return;
     }
 
@@ -71,8 +77,20 @@ export function WorkflowBuilderDuplicateMenu({
   }
 
   function handleDuplicateAnyway() {
-    setConfirmOpen(false);
+    setDuplicateConfirmOpen(false);
     runDuplicate();
+  }
+
+  function handleArchiveSelect() {
+    if (disabled) {
+      return;
+    }
+
+    setArchiveDialogOpen(true);
+  }
+
+  function handleArchived() {
+    router.push("/workflows");
   }
 
   return (
@@ -94,10 +112,18 @@ export function WorkflowBuilderDuplicateMenu({
             <CopyIcon />
             {isDuplicating ? "Duplicating…" : "Duplicate"}
           </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            disabled={disabled}
+            onSelect={handleArchiveSelect}
+          >
+            <ArchiveIcon />
+            {isArchiving ? "Archiving…" : "Archive"}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <AlertDialog open={duplicateConfirmOpen} onOpenChange={setDuplicateConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Duplicate without saving?</AlertDialogTitle>
@@ -119,6 +145,15 @@ export function WorkflowBuilderDuplicateMenu({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ArchiveWorkflowDialog
+        workflow={{ workflowId, name: workflowName }}
+        open={archiveDialogOpen}
+        onOpenChange={setArchiveDialogOpen}
+        hasUnsavedChanges={isDirty}
+        onPendingChange={setIsArchiving}
+        onArchived={handleArchived}
+      />
     </>
   );
 }
