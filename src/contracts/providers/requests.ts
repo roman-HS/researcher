@@ -2,7 +2,7 @@
  * Outbound provider API request schemas.
  *
  * Listing search confirmed in Story 6.1.1; property detail in Story 6.1.2;
- * comparables in Story 6.1.3.
+ * comparables in Story 6.1.3; rent estimate in Story 6.1.4.
  */
 
 export {

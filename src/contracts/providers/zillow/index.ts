@@ -90,11 +90,15 @@ export {
 } from "@/contracts/providers/zillow/property-lookup";
 
 export {
+  rentEstimateEndpointPath,
   rentEstimatePayloadSchema,
+  rentEstimateProviderIdSchema,
   rentEstimateRequestSchema,
   rentEstimateResponseSchema,
   rentEstimateToolKey,
+  rentEstimateV1MissingBehavior,
   type RentEstimatePayload,
+  type RentEstimateProviderId,
   type RentEstimateRequest,
   type RentEstimateResponse,
 } from "@/contracts/providers/zillow/rent-estimate";

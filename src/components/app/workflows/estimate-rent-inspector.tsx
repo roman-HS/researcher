@@ -7,9 +7,7 @@ import type { WorkflowToolConfigInspectorProps } from "@/components/app/workflow
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import type { WorkflowStepConfigValue } from "@/contracts/workflows/bindings";
 import { getMissingUpstreamArtefactMessage } from "@/lib/workflows/upstream-artefact-compatibility";
-import { patchWorkflowStepConfig } from "@/lib/workflows/patch-workflow-step-config";
 import { estimateRentConfigSchema } from "@/modules/tools/definitions/estimate-rent";
 import { useWorkflowBuilderStore } from "@/stores/workflow-builder-store";
 import { cn } from "@/lib/utils";
@@ -18,13 +16,11 @@ import { cn } from "@/lib/utils";
  * Inspector form for the Estimate Rent enrichment tool.
  *
  * @see Story 5.3.7 — Build Rent Estimate inspector form
+ * @see Story 6.1.4 — Confirm private-Zillow rent estimate contract
  */
 
 export function EstimateRentInspector({ nodeId }: WorkflowToolConfigInspectorProps) {
   const definition = useWorkflowBuilderStore((state) => state.definition);
-  const updateWorkflowNode = useWorkflowBuilderStore(
-    (state) => state.updateWorkflowNode,
-  );
 
   const node = definition.nodes.find((item) => item.id === nodeId);
   const nodeConfig = useMemo(() => node?.config ?? {}, [node?.config]);
@@ -59,14 +55,6 @@ export function EstimateRentInspector({ nodeId }: WorkflowToolConfigInspectorPro
     return null;
   }
 
-  function updateConfig(
-    patch: Record<string, WorkflowStepConfigValue | undefined>,
-  ) {
-    updateWorkflowNode(nodeId, {
-      config: patchWorkflowStepConfig(nodeConfig, patch),
-    });
-  }
-
   return (
     <div className="space-y-4">
       {upstreamWarning ? (
@@ -81,12 +69,12 @@ export function EstimateRentInspector({ nodeId }: WorkflowToolConfigInspectorPro
 
       <Alert className="border-border/60 bg-muted/30">
         <InfoIcon />
-        <AlertTitle>Provider capabilities unconfirmed</AlertTitle>
+        <AlertTitle>Point estimate only</AlertTitle>
         <AlertDescription>
-          The private-Zillow rent estimate endpoint and whether it returns point
-          values, ranges, or confidence metadata are unconfirmed and will be
-          validated in a later release. Missing-estimate handling is not
-          configurable yet.
+          The provider returns a monthly rent Zestimate (`rentZestimate`) via
+          `pro/byzpid`. Rent ranges and confidence metadata are not available.
+          Missing estimates produce a per-property warning; rent-dependent metrics
+          are marked unavailable.
         </AlertDescription>
       </Alert>
 
@@ -106,24 +94,24 @@ export function EstimateRentInspector({ nodeId }: WorkflowToolConfigInspectorPro
             id={`${nodeId}-include-range`}
             type="checkbox"
             checked={includeRange}
-            onChange={(event) =>
-              updateConfig({ includeRange: event.target.checked })
-            }
+            disabled
+            aria-disabled
             className={cn(
               "mt-0.5 size-4 shrink-0 rounded border border-input bg-background",
               "accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "disabled:cursor-not-allowed disabled:opacity-50",
             )}
           />
           <div className="space-y-1">
             <Label
               htmlFor={`${nodeId}-include-range`}
-              className="text-sm font-normal leading-snug"
+              className="text-sm font-normal leading-snug text-muted-foreground"
             >
               Include rent range when the provider returns one
             </Label>
             <p className="text-[11px] text-muted-foreground">
-              When enabled, low and high rent bounds are stored alongside the
-              point estimate if the provider supplies them. Defaults to on.
+              Not available on this endpoint. The config field is kept for saved
+              drafts until the provider exposes rent bounds.
             </p>
           </div>
         </div>
