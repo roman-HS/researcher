@@ -1355,7 +1355,7 @@ Implement the persisted workflow model, immutable workflow versions, workflow de
 
 1. Should the builder prevent invalid edges immediately or allow them and explain errors during validation?
 
-### HERE ------ Story 4.2.5 — Implement workflow definition validation service
+### Story 4.2.5 — Implement workflow definition validation service
 
 **Objective:** Create the server-side service that validates workflow definitions.
 
@@ -1385,7 +1385,7 @@ Implement the persisted workflow model, immutable workflow versions, workflow de
 
 1. Which validation warnings should block publish, if any?
 
-## Epic 4.3 — Workflow services and APIs
+## HERE ------ Epic 4.3 — Workflow services and APIs
 
 ### Story 4.3.1 — Implement create workflow service
 

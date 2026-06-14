@@ -80,4 +80,12 @@ export {
   type WorkflowRuntimeInputKey,
   type WorkflowRuntimeInputs,
 } from "./runtime-inputs";
+export {
+  workflowDefinitionValidationIssueSchema,
+  workflowDefinitionValidationResultSchema,
+  workflowDefinitionValidationSeverities,
+  type WorkflowDefinitionValidationIssue,
+  type WorkflowDefinitionValidationResult,
+  type WorkflowDefinitionValidationSeverity,
+} from "./validation";
 export type { WorkflowId, WorkflowVersionId } from "@/contracts/domain";

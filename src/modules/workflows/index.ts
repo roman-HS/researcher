@@ -1,7 +1,9 @@
 export const WORKFLOWS_MODULE_ROOT = "workflows" as const;
 
 export {
+  WorkflowDefinitionValidationError,
   WorkflowLifecycleError,
+  isWorkflowDefinitionValidationError,
   isWorkflowLifecycleError,
   type WorkflowLifecycleErrorCode,
 } from "./errors";
@@ -11,6 +13,10 @@ export {
   type WorkflowToolGraphIssue,
   type WorkflowToolGraphIssueCode,
 } from "./graph-validation";
+export {
+  assertWorkflowDefinitionValid,
+  validateWorkflowDefinition,
+} from "./validate-definition";
 export {
   assertVersionCanPublish,
   assertVersionStateTransition,
