@@ -2197,7 +2197,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 1. Should the summary include markdown export in V1?
 
-## HERE ------ Epic 5.4 — Builder validation, save, and publish
+## Epic 5.4 — Builder validation, save, and publish
 
 ### Story 5.4.1 — Add builder validation panel
 
@@ -2373,7 +2373,7 @@ Implement the user-facing workflow builder: workflow list, creation flow, React 
 
 Implement the first real tool executors, map RapidAPI/private-Zillow responses into canonical DTOs, and create deterministic internal analysis tools.
 
-## Epic 6.1 — Provider contract confirmation
+## HERE ------ Epic 6.1 — Provider contract confirmation
 
 ### Story 6.1.1 — Confirm private-Zillow listing search contract
 
