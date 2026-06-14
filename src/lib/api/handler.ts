@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/responses";
 import { isUnauthorizedError } from "@/modules/auth/errors";
 import { requireUser, type CurrentUser } from "@/modules/auth/session";
-import { isRunLifecycleError } from "@/modules/runs/errors";
+import { isRunInputValidationError, isRunLifecycleError } from "@/modules/runs/errors";
 import {
   isWorkflowDefinitionValidationError,
   isWorkflowLifecycleError,
@@ -277,6 +277,14 @@ function mapThrownError(error: unknown): Response {
   if (isRunLifecycleError(error)) {
     return apiErrorResponse("conflict", error.message, {
       details: { code: error.code },
+    });
+  }
+
+  if (isRunInputValidationError(error)) {
+    return apiErrorResponse("validation_error", error.message, {
+      details: {
+        issues: [...error.issues],
+      },
     });
   }
 

@@ -1,8 +1,11 @@
 export const RUNS_MODULE_ROOT = "runs" as const;
 
 export {
+  RunInputValidationError,
   RunLifecycleError,
+  isRunInputValidationError,
   isRunLifecycleError,
+  type RunInputValidationIssue,
   type RunLifecycleErrorCode,
 } from "./errors";
 export {
@@ -19,3 +22,6 @@ export {
   type RunStatusPatch,
   type RunStepStatusPatch,
 } from "./lifecycle";
+export {
+  parseRuntimeInputValues,
+} from "./validate-runtime-inputs";
