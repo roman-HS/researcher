@@ -7,6 +7,7 @@ import type {
 } from "@/contracts/workflows/internal";
 
 import type { WorkflowBuilderToolMetadata } from "./builder-tool-metadata";
+import { buildWorkflowGraphDegrees } from "./graph-degrees";
 import {
   resolveNodeValidationStatus,
   type WorkflowNodeValidationStatus,
@@ -48,18 +49,7 @@ function toFlowEdgeId(edge: WorkflowEdge): string {
 function buildNodeHandleRoles(
   definition: WorkflowDefinition,
 ): Map<string, WorkflowNodeHandleRole> {
-  const inDegree = new Map<string, number>();
-  const outDegree = new Map<string, number>();
-
-  for (const node of definition.nodes) {
-    inDegree.set(node.id, 0);
-    outDegree.set(node.id, 0);
-  }
-
-  for (const edge of definition.edges) {
-    outDegree.set(edge.source, (outDegree.get(edge.source) ?? 0) + 1);
-    inDegree.set(edge.target, (inDegree.get(edge.target) ?? 0) + 1);
-  }
+  const { inDegree, outDegree } = buildWorkflowGraphDegrees(definition);
 
   const roles = new Map<string, WorkflowNodeHandleRole>();
 

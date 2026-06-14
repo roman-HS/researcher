@@ -104,15 +104,6 @@ function WorkflowToolNodeComponent({
     ? toolCategoryAccentClasses[toolMetadata.categoryKey]
     : "bg-muted text-muted-foreground";
 
-  const showTargetHandle =
-    handleRole === "terminal" ||
-    handleRole === "middle" ||
-    handleRole === "disconnected";
-  const showSourceHandle =
-    handleRole === "root" ||
-    handleRole === "middle" ||
-    handleRole === "disconnected";
-
   return (
     <div
       className={cn(
@@ -123,20 +114,16 @@ function WorkflowToolNodeComponent({
         validationStatus === "warning" && !selected && "border-amber-500/40",
       )}
     >
-      {showTargetHandle ? (
-        <Handle
-          type="target"
-          position={Position.Left}
-          className={handleClassName}
-        />
-      ) : null}
-      {showSourceHandle ? (
-        <Handle
-          type="source"
-          position={Position.Right}
-          className={handleClassName}
-        />
-      ) : null}
+      <Handle
+        type="target"
+        position={Position.Left}
+        className={handleClassName}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className={handleClassName}
+      />
 
       <div className="space-y-2 p-2.5">
         <div className="flex items-start gap-2">

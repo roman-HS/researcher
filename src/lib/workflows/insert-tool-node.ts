@@ -1,9 +1,13 @@
 import type { ToolDiscoveryItem } from "@/contracts/tools/responses";
 import type {
   WorkflowDefinition,
+  WorkflowEdge,
   WorkflowToolNode,
 } from "@/contracts/workflows/internal";
 import type { WorkflowStepConfig } from "@/contracts/workflows/bindings";
+
+import { findChainAppendSourceNodeId } from "@/lib/workflows/graph-degrees";
+import { isValidWorkflowConnection } from "@/lib/workflows/graph-connection";
 
 /**
  * Insert a tool from the palette into a workflow definition.
@@ -80,10 +84,30 @@ export function insertToolNodeIntoDefinition(
     position,
   };
 
+  const appendSourceNodeId = findChainAppendSourceNodeId(definition);
+  const provisionalDefinition: WorkflowDefinition = {
+    ...definition,
+    nodes: [...definition.nodes, newNode],
+  };
+  const nextEdges: WorkflowEdge[] = [...definition.edges];
+
+  if (
+    appendSourceNodeId &&
+    isValidWorkflowConnection(
+      { source: appendSourceNodeId, target: nodeId },
+      provisionalDefinition,
+    )
+  ) {
+    nextEdges.push({
+      source: appendSourceNodeId,
+      target: nodeId,
+    });
+  }
+
   return {
     definition: {
-      ...definition,
-      nodes: [...definition.nodes, newNode],
+      ...provisionalDefinition,
+      edges: nextEdges,
     },
     nodeId,
   };
