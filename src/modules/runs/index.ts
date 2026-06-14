@@ -14,6 +14,10 @@ export {
   type ListRunsResult,
 } from "./list-runs";
 export {
+  getRun,
+  type GetRunContext,
+} from "./get-run";
+export {
   RunLifecycleError,
   RunStepConfigResolutionError,
   ExecutionTransportStartError,

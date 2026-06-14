@@ -28,20 +28,36 @@ export {
 } from "@/contracts/runs/run-error";
 export {
   createRunRequestSchema,
+  getRunParamsSchema,
+  getRunDetailQuerySchema,
   listRunsQuerySchema,
   parseCreateRunRequest,
   parseRunIdempotencyKey,
   runIdempotencyKeySchema,
   type CreateRunRequest,
+  type GetRunDetailQuery,
+  type GetRunParams,
   type ListRunsQuery,
   type RunIdempotencyKey,
 } from "@/contracts/runs/requests";
 export {
   createRunResponseSchema,
+  getRunDetailResponseSchema,
   listRunsResponseSchema,
+  runDetailAreaResultSchema,
+  runDetailCountsSchema,
+  runDetailPropertyResultSchema,
+  runDetailStepTimelineItemSchema,
+  runDetailUserFacingErrorSchema,
   runListItemSchema,
   type CreateRunResponse,
+  type GetRunDetailResponse,
   type ListRunsResponse,
+  type RunDetailAreaResult,
+  type RunDetailCounts,
+  type RunDetailPropertyResult,
+  type RunDetailStepTimelineItem,
+  type RunDetailUserFacingError,
   type RunListItem,
 } from "@/contracts/runs/responses";
 export {
