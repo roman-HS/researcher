@@ -6,6 +6,7 @@ import { RunAreaResultsPanel } from "@/components/app/runs/run-area-results-pane
 import { RunDetailHeader } from "@/components/app/runs/run-detail-header";
 import { RunPropertyResultsTable } from "@/components/app/runs/run-property-results-table";
 import { RunStepTimeline } from "@/components/app/runs/run-step-timeline";
+import { RunWorkflowSummaryPanel } from "@/components/app/runs/run-workflow-summary-panel";
 import { DEFAULT_RUN_POLL_AFTER_MS } from "@/contracts/runs/polling";
 import {
   getRunDetailResponseSchema,
@@ -19,6 +20,7 @@ import { apiClientGet } from "@/lib/api/browser-client";
  * @see Story 8.3.1 — Build property results table
  * @see Story 8.3.2 — Build property detail drawer
  * @see Story 8.3.3 — Build area results panel
+ * @see Story 8.3.4 — Build final summary panel
  */
 
 type RunDetailViewProps = {
@@ -179,6 +181,10 @@ export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
         areaResults={run.areaResults}
         selectedAreaFilter={selectedAreaFilter}
         onAreaSelect={handleAreaSelect}
+      />
+      <RunWorkflowSummaryPanel
+        summary={run.summary}
+        propertyResults={run.propertyResults}
       />
       <RunStepTimeline steps={run.steps} />
     </>
