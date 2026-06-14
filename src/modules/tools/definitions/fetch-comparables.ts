@@ -12,6 +12,15 @@ export const fetchComparablesConfigSchema = z.object({
 
 export type FetchComparablesConfig = z.infer<typeof fetchComparablesConfigSchema>;
 
+/** Binding-free config values passed to the executor after Story 7.2.4 resolution. */
+export const fetchComparablesResolvedConfigSchema = z.object({
+  maxComparables: z.number().int().positive().default(10),
+});
+
+export type FetchComparablesResolvedConfig = z.infer<
+  typeof fetchComparablesResolvedConfigSchema
+>;
+
 export const fetchComparablesTool = defineToolDefinition({
   key: "rapidapi.zillow.fetchComparables@1",
   name: "Fetch Comparables",

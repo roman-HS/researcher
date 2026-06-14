@@ -1,8 +1,10 @@
 import { listingSearchToolKey } from "@/contracts/providers/zillow/listing-search";
+import { comparablesToolKey } from "@/contracts/providers/zillow/comparables";
 import { propertyDetailToolKey } from "@/contracts/providers/zillow/property-detail";
 import type { ToolExecutor } from "@/contracts/runs";
 import type { ToolKey } from "@/contracts/tools";
 import { ExecutorNotFoundError } from "@/modules/tools/executors/errors";
+import { executeFetchComparables } from "@/modules/tools/executors/fetch-comparables";
 import { executeListingSearch } from "@/modules/tools/executors/listing-search";
 import { executePropertyDetail } from "@/modules/tools/executors/property-detail";
 import { createNotImplementedToolExecutor } from "@/modules/tools/executors/not-implemented";
@@ -15,6 +17,10 @@ function resolveExecutor(toolKey: ToolKey): ToolExecutor {
 
   if (toolKey === propertyDetailToolKey) {
     return executePropertyDetail;
+  }
+
+  if (toolKey === comparablesToolKey) {
+    return executeFetchComparables;
   }
 
   return createNotImplementedToolExecutor(toolKey);
