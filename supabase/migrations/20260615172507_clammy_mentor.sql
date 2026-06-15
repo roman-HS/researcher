@@ -1,0 +1,3 @@
+ALTER TABLE "workflow_runs" ADD COLUMN "sourceRunId" uuid;--> statement-breakpoint
+ALTER TABLE "workflow_runs" ADD CONSTRAINT "workflow_runs_sourceRunId_workflow_runs_id_fk" FOREIGN KEY ("sourceRunId") REFERENCES "public"."workflow_runs"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "workflow_runs_source_run_id_idx" ON "workflow_runs" USING btree ("sourceRunId");

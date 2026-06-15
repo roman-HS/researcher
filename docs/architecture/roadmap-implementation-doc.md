@@ -3804,7 +3804,7 @@ Make the product usable end-to-end by adding run forms, run lists, run details, 
 
 1. Should users be able to rerun only failed items in V1?
 
-## HERE ------ Epic 8.4 — Rerun and workflow iteration
+## Epic 8.4 — Rerun and workflow iteration
 
 ### Story 8.4.1 — Add rerun with same inputs
 
@@ -3835,7 +3835,7 @@ Make the product usable end-to-end by adding run forms, run lists, run details, 
 
 1. Should rerun use the original workflow version or the latest published version?
 
-### Story 8.4.2 — Add rerun with edited inputs
+### HERE ------ Story 8.4.2 — Add rerun with edited inputs
 
 **Objective:** Let users adjust run inputs before starting a new run.
 

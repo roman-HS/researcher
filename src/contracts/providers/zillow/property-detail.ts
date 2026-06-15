@@ -43,8 +43,8 @@ export const propertyDetailPriceHistoryItemSchema = z
     event: z.string().optional(),
     source: z.string().optional(),
     postingIsRental: z.boolean().optional(),
-    buyerAgent: z.record(z.string(), z.unknown()).optional(),
-    sellerAgent: z.record(z.string(), z.unknown()).optional(),
+    buyerAgent: z.record(z.string(), z.unknown()).nullable().optional(),
+    sellerAgent: z.record(z.string(), z.unknown()).nullable().optional(),
   })
   .loose();
 

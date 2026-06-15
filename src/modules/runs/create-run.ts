@@ -32,6 +32,7 @@ import {
 
 /**
  * @see Story 7.3.2 — Implement idempotent run creation service
+ * @see Story 8.4.1 — Add rerun with same inputs
  */
 
 export type CreateRunContext = Pick<
@@ -112,6 +113,53 @@ function idempotencyConflictError(): AppError {
     "conflict",
     "Idempotency key was reused with a different request body.",
   );
+}
+
+function sourceRunNotFoundError(): AppError {
+  return new AppError("not_found", "Source run not found.");
+}
+
+function sourceRunWorkflowMismatchError(): AppError {
+  return new AppError(
+    "validation_error",
+    "Source run does not belong to the requested workflow.",
+  );
+}
+
+type ResolvedCreateRunRequest = {
+  workflowId: string;
+  inputs: unknown;
+  sourceRunId: string | null;
+};
+
+async function resolveCreateRunRequest(
+  db: DatabaseExecutor,
+  request: CreateRunRequest,
+  workspaceId: string,
+): Promise<ResolvedCreateRunRequest> {
+  if (!request.sourceRunId) {
+    return {
+      workflowId: request.workflowId,
+      inputs: request.inputs,
+      sourceRunId: null,
+    };
+  }
+
+  const sourceRun = await loadRunById(db, request.sourceRunId);
+
+  if (!sourceRun?.workflowId || sourceRun.workspaceId !== workspaceId) {
+    throw sourceRunNotFoundError();
+  }
+
+  if (sourceRun.workflowId !== request.workflowId) {
+    throw sourceRunWorkflowMismatchError();
+  }
+
+  return {
+    workflowId: sourceRun.workflowId,
+    inputs: sourceRun.inputJson,
+    sourceRunId: request.sourceRunId,
+  };
 }
 
 function selectLatestPublishedVersion(
@@ -316,6 +364,7 @@ async function persistNewRun(
     workflowVersionId: string;
     createdByUserId: string;
     inputJson: Record<string, unknown>;
+    sourceRunId: string | null;
     idempotencyKey: string;
     requestHash: string;
   },
@@ -344,6 +393,7 @@ async function persistNewRun(
         workflowId: input.workflowId,
         workflowVersionId: input.workflowVersionId,
         createdByUserId: input.createdByUserId,
+        sourceRunId: input.sourceRunId,
         status: "pending",
         inputJson: input.inputJson,
       })
@@ -398,11 +448,13 @@ export async function createRun(
   const userId = requireUserId(context.user);
   const transport = options.transport ?? getExecutionTransport();
 
-  await loadWorkflowForRun(db, request.workflowId, workspaceId);
+  const resolvedRequest = await resolveCreateRunRequest(db, request, workspaceId);
+
+  await loadWorkflowForRun(db, resolvedRequest.workflowId, workspaceId);
 
   const publishedVersion = await loadLatestPublishedVersionForWorkflow(
     db,
-    request.workflowId,
+    resolvedRequest.workflowId,
   );
 
   if (!publishedVersion.id) {
@@ -419,11 +471,11 @@ export async function createRun(
 
   const validatedInputs = parseRuntimeInputValues(
     compiledPlan.runtimeInputs,
-    request.inputs,
+    resolvedRequest.inputs,
   );
 
   const requestHash = hashCreateRunRequest(
-    request.workflowId,
+    resolvedRequest.workflowId,
     validatedInputs,
   );
 
@@ -443,10 +495,11 @@ export async function createRun(
   try {
     result = await persistNewRun(db, {
       workspaceId,
-      workflowId: request.workflowId,
+      workflowId: resolvedRequest.workflowId,
       workflowVersionId: publishedVersionId,
       createdByUserId: userId,
       inputJson: validatedInputs,
+      sourceRunId: resolvedRequest.sourceRunId,
       idempotencyKey,
       requestHash,
     });

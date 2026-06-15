@@ -533,6 +533,7 @@ export async function getRun(
     workflowName,
     workflowVersionId: run.workflowVersionId,
     workflowVersionNumber,
+    sourceRunId: run.sourceRunId ?? null,
     createdAt: toIsoDateTime(run.createdAt),
     startedAt: toNullableIsoDateTime(run.startedAt),
     completedAt: toNullableIsoDateTime(run.completedAt),

@@ -24,6 +24,7 @@ import type { PropertyResultFilter } from "@/lib/runs/property-results-table";
  * @see Story 8.3.3 — Build area results panel
  * @see Story 8.3.4 — Build final summary panel
  * @see Story 8.3.5 — Add partial and failed item visibility
+ * @see Story 8.4.1 — Add rerun with same inputs
  */
 
 type RunDetailViewProps = {
@@ -157,10 +158,12 @@ export function RunDetailView({ runId, initialRun }: RunDetailViewProps) {
   return (
     <>
       <RunDetailHeader
+        runId={runId}
         status={run.status}
         workflowId={run.workflowId}
         workflowName={run.workflowName}
         workflowVersionNumber={run.workflowVersionNumber}
+        sourceRunId={run.sourceRunId}
         startedAt={run.startedAt}
         completedAt={run.completedAt}
         runtimeInputs={run.runtimeInputs}

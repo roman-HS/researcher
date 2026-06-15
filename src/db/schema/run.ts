@@ -9,6 +9,8 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  uuid,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 
 import type {
@@ -86,6 +88,9 @@ export const workflowRuns = pgTable(
     createdByUserId: foreignEntityIdColumn("createdByUserId")
       .notNull()
       .references(() => user.id, { onDelete: "restrict" }),
+    sourceRunId: uuid("sourceRunId").references((): AnyPgColumn => workflowRuns.id, {
+      onDelete: "set null",
+    }),
     status: workflowRunStatusEnum("status").notNull().default("pending"),
     inputJson: jsonPayloadColumn("inputJson").notNull().default({}),
     outputSummaryJson: jsonPayloadColumn("outputSummaryJson"),
@@ -104,6 +109,7 @@ export const workflowRuns = pgTable(
       table.status,
       table.createdAt,
     ),
+    index("workflow_runs_source_run_id_idx").on(table.sourceRunId),
   ],
 );
 
@@ -236,6 +242,14 @@ export const workflowRunsRelations = relations(workflowRuns, ({ one, many }) => 
   createdBy: one(user, {
     fields: [workflowRuns.createdByUserId],
     references: [user.id],
+  }),
+  sourceRun: one(workflowRuns, {
+    fields: [workflowRuns.sourceRunId],
+    references: [workflowRuns.id],
+    relationName: "workflowRunReruns",
+  }),
+  reruns: many(workflowRuns, {
+    relationName: "workflowRunReruns",
   }),
   steps: many(workflowRunSteps),
   propertyResults: many(runPropertyResults),

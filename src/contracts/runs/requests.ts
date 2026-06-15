@@ -9,6 +9,7 @@ import { domainEntityIdSchema } from "@/contracts/domain/primitives";
  * @see Story 7.3.3 — Implement run creation API route
  * @see Story 7.5.1 — Implement list runs service and API
  * @see Story 7.5.2 — Implement get run detail service and API
+ * @see Story 8.4.1 — Add rerun with same inputs
  */
 
 export const runIdempotencyKeySchema = z.string().trim().min(1).max(128);
@@ -19,6 +20,7 @@ export const createRunRequestSchema = z
   .object({
     workflowId: domainEntityIdSchema,
     inputs: z.record(z.string(), z.unknown()).optional().default({}),
+    sourceRunId: domainEntityIdSchema.optional(),
   })
   .strict();
 

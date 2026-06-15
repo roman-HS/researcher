@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertCircleIcon, AlertTriangleIcon, Loader2Icon } from "lucide-react";
 
+import { RunRerunButton } from "@/components/app/runs/run-rerun-button";
 import { RunStatusBadge } from "@/components/app/runs/run-status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ToolExecutorRuntimeInputValues } from "@/contracts/runs/executors";
@@ -24,15 +25,18 @@ import { cn } from "@/lib/utils";
  * @see Story 8.2.2 — Build run detail header
  * @see Story 8.2.4 — Add run status polling
  * @see Story 8.3.5 — Add partial and failed item visibility
+ * @see Story 8.4.1 — Add rerun with same inputs
  */
 
 export type RunDetailPollState = "refreshing" | "error" | null;
 
 export type RunDetailHeaderProps = {
+  runId: string;
   status: WorkflowRunStatus;
   workflowId: string;
   workflowName: string;
   workflowVersionNumber: number;
+  sourceRunId: string | null;
   startedAt: string | null;
   completedAt: string | null;
   runtimeInputs: WorkflowRuntimeInputs;
@@ -125,10 +129,12 @@ function RunDetailPollIndicator({
 }
 
 export function RunDetailHeader({
+  runId,
   status,
   workflowId,
   workflowName,
   workflowVersionNumber,
+  sourceRunId,
   startedAt,
   completedAt,
   runtimeInputs,
@@ -168,7 +174,22 @@ export function RunDetailHeader({
         <p className="text-sm text-muted-foreground">
           Published version v{workflowVersionNumber}
         </p>
+        {sourceRunId ? (
+          <p className="text-sm text-muted-foreground">
+            Rerun of{" "}
+            <Link href={`/runs/${sourceRunId}`} className="hover:text-foreground">
+              previous run
+            </Link>
+          </p>
+        ) : null}
       </div>
+
+      <RunRerunButton
+        runId={runId}
+        workflowId={workflowId}
+        status={status}
+        inputValues={inputValues}
+      />
 
       {shouldShowPartialRunBanner(status) ? (
         <Alert className="border-amber-500/40 bg-amber-500/5">

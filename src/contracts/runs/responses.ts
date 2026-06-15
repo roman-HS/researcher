@@ -36,6 +36,7 @@ import { workflowRunStatusSchema, workflowRunStepStatusSchema } from "./lifecycl
  * @see Story 7.3.3 — Implement run creation API route
  * @see Story 7.5.1 — Implement list runs service and API
  * @see Story 7.5.2 — Implement get run detail service and API
+ * @see Story 8.4.1 — Add rerun with same inputs
  */
 
 export const createRunResponseSchema = z.object({
@@ -175,6 +176,7 @@ export const getRunDetailResponseSchema = z.object({
   workflowName: workflowNameSchema,
   workflowVersionId: domainEntityIdSchema,
   workflowVersionNumber: z.number().int().positive(),
+  sourceRunId: domainEntityIdSchema.nullable(),
   createdAt: isoDateTimeSchema,
   startedAt: isoDateTimeSchema.nullable(),
   completedAt: isoDateTimeSchema.nullable(),
