@@ -45,6 +45,7 @@ import {
   assertWorkingSetListingCount,
   getWorkflowRunProviderClient,
   limitEnrichmentTargets,
+  resetExecutionSessionStepProviderCalls,
   runWithExecutionSession,
   toExecutionLimitFatalError,
 } from "@/modules/runs/execution-session";
@@ -130,6 +131,36 @@ describe("execution session limits", () => {
           applyRunEnrichmentBudget: false,
         }),
       ).toEqual(["b", "c"]);
+    });
+  });
+
+  it("resets per-step provider call counters between steps", async () => {
+    request.mockClear();
+
+    const context = createTestContext({
+      limits: {
+        maxProviderCallsPerStep: 2,
+        maxProviderCallsPerRun: 10,
+      },
+    });
+
+    await runWithExecutionSession(context, async () => {
+      const client = getWorkflowRunProviderClient();
+
+      await client.request({ path: "test", endpointName: "test" });
+      await client.request({ path: "test", endpointName: "test" });
+
+      await expect(
+        client.request({ path: "test", endpointName: "test" }),
+      ).rejects.toMatchObject({
+        limit: "maxProviderCallsPerStep",
+      });
+
+      resetExecutionSessionStepProviderCalls();
+
+      await expect(
+        client.request({ path: "test", endpointName: "test" }),
+      ).resolves.toMatchObject({ ok: true });
     });
   });
 

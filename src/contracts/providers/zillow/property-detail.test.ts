@@ -7,6 +7,9 @@ describe("propertyDetailResponseSchema", () => {
     const parsed = propertyDetailResponseSchema.safeParse({
       propertyDetails: {
         zpid: 2098418308,
+        livingArea: null,
+        livingAreaValue: null,
+        livingAreaUnits: null,
         zestimate: null,
         rentZestimate: null,
         lastSoldPrice: null,

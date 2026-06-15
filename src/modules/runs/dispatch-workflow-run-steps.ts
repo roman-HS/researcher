@@ -35,6 +35,7 @@ import {
 import {
   assertRunDurationNotExceeded,
   assertWorkingSetListingCount,
+  resetExecutionSessionStepProviderCalls,
   runWithExecutionSession,
   syncExecutionContextUsage,
   toExecutionLimitFatalError,
@@ -225,6 +226,7 @@ async function executeCompiledStep(options: {
   stepOutput?: RunStepOutputSnapshot;
 }> {
   const context = resetStepUsageCounters(options.context);
+  resetExecutionSessionStepProviderCalls();
   const { step, stepId, persistence, resolveExecutor } = options;
 
   let resolvedConfig: ToolExecutorResolvedConfig;

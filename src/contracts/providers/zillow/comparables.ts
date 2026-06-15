@@ -38,6 +38,9 @@ export const comparablesRequestSchema = z.object({
 
 export type ComparablesRequest = z.infer<typeof comparablesRequestSchema>;
 
+const nullableNumberSchema = z.number().nullable().optional();
+const nullableNonNegativeNumberSchema = z.number().nonnegative().nullable().optional();
+
 /**
  * Wire-accurate `property` payload from `comparable_homes` result items.
  * Additional provider fields pass through via `.loose()`.
@@ -46,13 +49,13 @@ export const comparablesPropertyPayloadSchema = z
   .object({
     zpid: comparablesProviderIdSchema.optional(),
     address: zillowAddressFragmentSchema.optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
+    latitude: nullableNumberSchema,
+    longitude: nullableNumberSchema,
     bedrooms: z.number().nonnegative().optional(),
     bathrooms: z.number().nonnegative().optional(),
-    livingArea: z.number().nonnegative().optional(),
-    livingAreaValue: z.number().nonnegative().optional(),
-    livingAreaUnits: z.string().optional(),
+    livingArea: nullableNonNegativeNumberSchema,
+    livingAreaValue: nullableNonNegativeNumberSchema,
+    livingAreaUnits: z.string().nullable().optional(),
     lotSize: z.number().nullable().optional(),
     lotAreaValue: z.number().nullable().optional(),
     lotAreaUnits: z.string().optional(),

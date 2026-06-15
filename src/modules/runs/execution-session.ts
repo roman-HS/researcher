@@ -238,6 +238,17 @@ export function getWorkflowRunProviderClient(): RapidApiClient {
   );
 }
 
+/** Reset per-step provider call counters at the start of each workflow step. */
+export function resetExecutionSessionStepProviderCalls(): void {
+  const session = tryGetExecutionSession();
+
+  if (!session) {
+    return;
+  }
+
+  session.usage.providerCallsStep = 0;
+}
+
 export function syncExecutionContextUsage(
   context: WorkflowExecutionContext
 ): WorkflowExecutionContext {

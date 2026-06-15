@@ -282,12 +282,14 @@ function mapAddressFragment(
 }
 
 function mapProviderGeo(
-  latitude: number | undefined,
-  longitude: number | undefined,
+  latitude: number | null | undefined,
+  longitude: number | null | undefined,
 ): ComparableProperty["geo"] {
   if (
     latitude === undefined ||
+    latitude === null ||
     longitude === undefined ||
+    longitude === null ||
     !Number.isFinite(latitude) ||
     !Number.isFinite(longitude)
   ) {
