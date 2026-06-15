@@ -5,7 +5,10 @@ import type { ToolExecutorFatalError } from "@/contracts/runs/executors";
 import type { WorkflowExecutionUsage } from "@/contracts/runs/execution-context";
 import type { WorkflowExecutionContext } from "@/contracts/runs/execution-context";
 import { createToolExecutorFatalError } from "@/contracts/runs/executors";
-import { createRapidApiClient, createRapidApiTransportClient } from "@/integrations/rapidapi/client";
+import {
+  createRapidApiClient,
+  createRapidApiTransportClient,
+} from "@/integrations/rapidapi/client";
 import { loadProviderRetryConfigFromEnv } from "@/integrations/rapidapi/load-retry-config";
 import { withProviderRetries } from "@/integrations/rapidapi/retry";
 import type { RapidApiClient } from "@/integrations/rapidapi/types";
@@ -49,13 +52,13 @@ export function tryGetExecutionSession(): ExecutionSessionState | undefined {
 function createLimitExceededError(
   limit: ExecutionLimitName,
   userMessage: string,
-  debug?: Record<string, unknown>,
+  debug?: Record<string, unknown>
 ): ExecutionLimitExceededError {
   return new ExecutionLimitExceededError({ limit, userMessage, debug });
 }
 
 export function toExecutionLimitFatalError(
-  error: ExecutionLimitExceededError,
+  error: ExecutionLimitExceededError
 ): ToolExecutorFatalError {
   return createToolExecutorFatalError(
     EXECUTION_LIMIT_EXCEEDED_CODE,
@@ -65,7 +68,7 @@ export function toExecutionLimitFatalError(
         limit: error.limit,
         ...error.debug,
       },
-    },
+    }
   );
 }
 
@@ -83,7 +86,7 @@ export function assertRunDurationNotExceeded(): void {
     {
       elapsedMs,
       maxRunDurationMs: session.limits.maxRunDurationMs,
-    },
+    }
   );
 }
 
@@ -100,11 +103,13 @@ export function assertWorkingSetListingCount(propertyCount: number): void {
     {
       propertyCount,
       maxListingCount: session.limits.maxListingCount,
-    },
+    }
   );
 }
 
-export function getEffectiveListingResultCap(fallbackMaxResults: number): number {
+export function getEffectiveListingResultCap(
+  fallbackMaxResults: number
+): number {
   const session = tryGetExecutionSession();
 
   if (!session) {
@@ -114,22 +119,43 @@ export function getEffectiveListingResultCap(fallbackMaxResults: number): number
   return Math.min(fallbackMaxResults, session.limits.maxListingCount);
 }
 
+/**
+ * Cap how many properties a step may enrich.
+ *
+ * `maxPropertiesEnrichedPerRun` applies only when `applyRunEnrichmentBudget`
+ * is true (property detail). Downstream enrichments (comparables, rent) operate
+ * on properties already admitted by an earlier step and are bounded by provider
+ * call limits instead.
+ */
 export function limitEnrichmentTargets<T>(
   targets: readonly T[],
-  options: { stepMaxProperties?: number } = {},
+  options: {
+    stepMaxProperties?: number;
+    applyRunEnrichmentBudget?: boolean;
+  } = {}
 ): T[] {
   if (targets.length === 0) {
     return [];
   }
 
+  const applyRunEnrichmentBudget = options.applyRunEnrichmentBudget ?? true;
+
+  if (options.stepMaxProperties !== undefined) {
+    targets = targets.slice(0, options.stepMaxProperties);
+  }
+
+  if (targets.length === 0) {
+    return [];
+  }
+
+  if (!applyRunEnrichmentBudget) {
+    return [...targets];
+  }
+
   const session = tryGetExecutionSession();
 
   if (!session) {
-    if (options.stepMaxProperties === undefined) {
-      return [...targets];
-    }
-
-    return targets.slice(0, options.stepMaxProperties);
+    return [...targets];
   }
 
   const remainingBudget =
@@ -143,15 +169,11 @@ export function limitEnrichmentTargets<T>(
         enrichmentTargetsUsed: session.enrichmentTargetsUsed,
         maxPropertiesEnrichedPerRun: session.limits.maxPropertiesEnrichedPerRun,
         requestedTargets: targets.length,
-      },
+      }
     );
   }
 
-  let allowedCount = Math.min(remainingBudget, targets.length);
-
-  if (options.stepMaxProperties !== undefined) {
-    allowedCount = Math.min(allowedCount, options.stepMaxProperties);
-  }
+  const allowedCount = Math.min(remainingBudget, targets.length);
 
   session.enrichmentTargetsUsed += allowedCount;
 
@@ -161,14 +183,16 @@ export function limitEnrichmentTargets<T>(
 function assertAndRecordProviderCall(): void {
   const session = requireExecutionSession();
 
-  if (session.usage.providerCallsStep >= session.limits.maxProviderCallsPerStep) {
+  if (
+    session.usage.providerCallsStep >= session.limits.maxProviderCallsPerStep
+  ) {
     throw createLimitExceededError(
       "maxProviderCallsPerStep",
       `This step exceeded the maximum provider call count of ${session.limits.maxProviderCallsPerStep}.`,
       {
         providerCallsStep: session.usage.providerCallsStep,
         maxProviderCallsPerStep: session.limits.maxProviderCallsPerStep,
-      },
+      }
     );
   }
 
@@ -179,7 +203,7 @@ function assertAndRecordProviderCall(): void {
       {
         providerCallsRun: session.usage.providerCallsRun,
         maxProviderCallsPerRun: session.limits.maxProviderCallsPerRun,
-      },
+      }
     );
   }
 
@@ -210,12 +234,12 @@ export function getWorkflowRunProviderClient(): RapidApiClient {
         });
       },
     },
-    loadProviderRetryConfigFromEnv(),
+    loadProviderRetryConfigFromEnv()
   );
 }
 
 export function syncExecutionContextUsage(
-  context: WorkflowExecutionContext,
+  context: WorkflowExecutionContext
 ): WorkflowExecutionContext {
   const session = tryGetExecutionSession();
 
@@ -237,7 +261,7 @@ export function syncExecutionContextUsage(
 
 export async function runWithExecutionSession<T>(
   context: WorkflowExecutionContext,
-  fn: () => Promise<T>,
+  fn: () => Promise<T>
 ): Promise<T> {
   const runStartedAt = context.run.startedAt
     ? new Date(context.run.startedAt)

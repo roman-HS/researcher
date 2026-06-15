@@ -92,7 +92,9 @@ export const executeEstimateRent: ToolExecutor = async (input) => {
     );
   }
 
-  const targets = limitEnrichmentTargets(selectRentEstimateTargets(input.workingSet));
+  const targets = limitEnrichmentTargets(selectRentEstimateTargets(input.workingSet), {
+    applyRunEnrichmentBudget: false,
+  });
 
   if (targets.length === 0) {
     return createToolExecutorSuccessResult({});

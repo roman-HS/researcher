@@ -116,6 +116,23 @@ describe("execution session limits", () => {
     ).rejects.toBeInstanceOf(ExecutionLimitExceededError);
   });
 
+  it("skips run enrichment budget for downstream enrichment steps", async () => {
+    const context = createTestContext({
+      limits: {
+        maxPropertiesEnrichedPerRun: 1,
+      },
+    });
+
+    await runWithExecutionSession(context, async () => {
+      expect(limitEnrichmentTargets(["a"])).toEqual(["a"]);
+      expect(
+        limitEnrichmentTargets(["b", "c"], {
+          applyRunEnrichmentBudget: false,
+        }),
+      ).toEqual(["b", "c"]);
+    });
+  });
+
   it("records provider calls through the wrapped client", async () => {
     request.mockClear();
 

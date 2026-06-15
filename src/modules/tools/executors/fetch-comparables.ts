@@ -88,7 +88,9 @@ export const executeFetchComparables: ToolExecutor = async (input) => {
     );
   }
 
-  const targets = limitEnrichmentTargets(selectComparablesTargets(input.workingSet));
+  const targets = limitEnrichmentTargets(selectComparablesTargets(input.workingSet), {
+    applyRunEnrichmentBudget: false,
+  });
 
   if (targets.length === 0) {
     return createToolExecutorSuccessResult({});
