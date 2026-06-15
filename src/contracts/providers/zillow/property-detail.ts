@@ -33,12 +33,15 @@ export const propertyDetailRequestSchema = z.object({
 
 export type PropertyDetailRequest = z.infer<typeof propertyDetailRequestSchema>;
 
+const nullableNumberSchema = z.number().nullable().optional();
+const nullableNonNegativeNumberSchema = z.number().nonnegative().nullable().optional();
+
 export const propertyDetailPriceHistoryItemSchema = z
   .object({
     date: z.string().optional(),
     time: z.number().optional(),
     price: z.number().nullable().optional(),
-    pricePerSquareFoot: z.number().optional(),
+    pricePerSquareFoot: nullableNumberSchema,
     priceChangeRate: z.number().optional(),
     event: z.string().optional(),
     source: z.string().optional(),
@@ -53,11 +56,14 @@ export const propertyDetailResoFactsSchema = z
     yearBuilt: z.number().int().optional(),
     bedrooms: z.number().nonnegative().optional(),
     bathrooms: z.number().nonnegative().optional(),
-    livingArea: z.string().optional(),
-    lotSize: z.string().optional(),
-    taxAssessedValue: z.number().optional(),
-    associationFee: z.number().nullable().optional(),
-    pricePerSquareFoot: z.number().optional(),
+    livingArea: z.string().nullable().optional(),
+    lotSize: z.string().nullable().optional(),
+    taxAssessedValue: nullableNumberSchema,
+    associationFee: z
+      .union([z.number(), z.string()])
+      .nullable()
+      .optional(),
+    pricePerSquareFoot: nullableNumberSchema,
     homeType: z.string().optional(),
   })
   .loose();
@@ -85,13 +91,13 @@ export const propertyDetailsPayloadSchema = z
     livingArea: z.number().nonnegative().optional(),
     livingAreaValue: z.number().nonnegative().optional(),
     livingAreaUnits: z.string().optional(),
-    lotSize: z.number().nonnegative().optional(),
-    lotAreaValue: z.number().nonnegative().optional(),
+    lotSize: nullableNonNegativeNumberSchema,
+    lotAreaValue: nullableNonNegativeNumberSchema,
     lotAreaUnits: z.string().optional(),
-    price: z.number().optional(),
-    zestimate: z.number().optional(),
-    rentZestimate: z.number().optional(),
-    lastSoldPrice: z.number().optional(),
+    price: nullableNumberSchema,
+    zestimate: nullableNumberSchema,
+    rentZestimate: nullableNumberSchema,
+    lastSoldPrice: nullableNumberSchema,
     homeStatus: z.string().optional(),
     keystoneHomeStatus: z.string().optional(),
     homeType: z.string().optional(),

@@ -1,5 +1,6 @@
 import {
   DEFAULT_CURRENCY,
+  isoDateTimeSchema,
   moneySchema,
   propertyDetailSchema,
   type Address,
@@ -244,15 +245,19 @@ function resolveLotSizeSqft(
   );
 }
 
-function parsePositiveInteger(value: number | undefined): number | undefined {
-  if (value === undefined || !Number.isFinite(value) || value <= 0) {
+function parsePositiveInteger(
+  value: number | null | undefined,
+): number | undefined {
+  if (value === undefined || value === null || !Number.isFinite(value) || value <= 0) {
     return undefined;
   }
 
   return Math.round(value);
 }
 
-function parseSqftFromString(value: string | undefined): number | undefined {
+function parseSqftFromString(
+  value: string | null | undefined,
+): number | undefined {
   if (!value) {
     return undefined;
   }
@@ -364,13 +369,13 @@ function resolvePriceHistoryTimestamp(
 
 function parsePriceHistoryDate(
   entry: PropertyDetailPriceHistoryItem,
-): string | undefined {
+): PropertyDetail["lastSaleDate"] {
   if (entry.time !== undefined && Number.isFinite(entry.time)) {
     const timestamp = entry.time > 1_000_000_000_000 ? entry.time : entry.time * 1000;
-    const date = new Date(timestamp);
+    const canonical = toCanonicalIsoDateTime(new Date(timestamp));
 
-    if (!Number.isNaN(date.getTime())) {
-      return date.toISOString();
+    if (canonical) {
+      return canonical;
     }
   }
 
@@ -378,11 +383,33 @@ function parsePriceHistoryDate(
     const parsed = Date.parse(entry.date);
 
     if (!Number.isNaN(parsed)) {
-      return new Date(parsed).toISOString();
+      return toCanonicalIsoDateTime(new Date(parsed));
     }
   }
 
   return undefined;
+}
+
+function toCanonicalIsoDateTime(date: Date): PropertyDetail["lastSaleDate"] {
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  try {
+    const candidate = date.toISOString();
+    const parsed = isoDateTimeSchema.safeParse(candidate);
+
+    if (parsed.success) {
+      return parsed.data;
+    }
+
+    const withoutMilliseconds = candidate.replace(/\.\d{3}Z$/, "+00:00");
+    const retry = isoDateTimeSchema.safeParse(withoutMilliseconds);
+
+    return retry.success ? retry.data : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function mapTaxAssessedValue(
@@ -390,7 +417,12 @@ function mapTaxAssessedValue(
 ): PropertyDetail["taxAssessedValue"] {
   const value = resoFacts?.taxAssessedValue;
 
-  if (value === undefined || !Number.isFinite(value) || value < 0) {
+  if (
+    value === undefined ||
+    value === null ||
+    !Number.isFinite(value) ||
+    value < 0
+  ) {
     return undefined;
   }
 
@@ -406,8 +438,7 @@ function mapHoaFee(
 ): PropertyDetail["hoaFee"] {
   const monthlyFee =
     payload.monthlyHoaFee === null ? undefined : payload.monthlyHoaFee;
-  const associationFee =
-    resoFacts?.associationFee === null ? undefined : resoFacts?.associationFee;
+  const associationFee = parseOptionalNumericValue(resoFacts?.associationFee);
   const value = monthlyFee ?? associationFee;
 
   if (value === undefined || !Number.isFinite(value) || value < 0) {
@@ -424,6 +455,23 @@ function resolveCurrency(currency: string | undefined): string {
   const normalized = currency?.trim().toUpperCase();
 
   return normalized && normalized.length === 3 ? normalized : DEFAULT_CURRENCY;
+}
+
+function parseOptionalNumericValue(
+  value: number | string | null | undefined,
+): number | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : undefined;
+  }
+
+  const normalized = value.replace(/,/g, "").trim();
+  const parsed = Number(normalized);
+
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function formatMoneyAmount(value: number): string {

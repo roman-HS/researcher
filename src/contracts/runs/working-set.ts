@@ -52,9 +52,33 @@ export const executionWorkingSetSchema = z
 
 export type ExecutionWorkingSet = z.infer<typeof executionWorkingSetSchema>;
 
+/**
+ * Patch fields intentionally omit schema defaults. Using
+ * `executionWorkingSetSchema.partial()` would inject empty defaults during parse
+ * and wipe `propertyOrder` when executors only return `*ByKey` updates.
+ */
+const executionWorkingSetPatchFields = {
+  propertyOrder: z.array(propertyKeySchema).optional(),
+  listingsByKey: z.record(propertyKeySchema, propertyListingSchema).optional(),
+  detailsByKey: z.record(propertyKeySchema, propertyDetailSchema).optional(),
+  comparablesByKey: z
+    .record(propertyKeySchema, comparableSetSchema)
+    .optional(),
+  rentEstimatesByKey: z
+    .record(propertyKeySchema, rentEstimateSchema)
+    .optional(),
+  metricsByKey: z.record(propertyKeySchema, metricBundleSchema).optional(),
+  scoresByKey: z.record(propertyKeySchema, propertyScoreSchema).optional(),
+  areaAggregatesByKey: z
+    .record(z.string().min(1), areaAggregateSchema)
+    .optional(),
+  summary: workflowSummarySchema.optional(),
+} as const;
+
 /** Partial update merged into the current working set by the step dispatcher. */
-export const executionWorkingSetPatchSchema =
-  executionWorkingSetSchema.partial().strict();
+export const executionWorkingSetPatchSchema = z
+  .object(executionWorkingSetPatchFields)
+  .strict();
 
 export type ExecutionWorkingSetPatch = z.infer<
   typeof executionWorkingSetPatchSchema
